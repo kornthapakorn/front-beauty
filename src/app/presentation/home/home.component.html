@@ -1,0 +1,16 @@
+<div class="home">
+  <h2>?????????????????????</h2>
+  <p>????????????????????????? ??????</p>
+  <div class="links">
+    <a class="btn" routerLink="/login-event">Login</a>
+    <a class="btn" routerLink="/manage-events">Event List</a>
+    <a class="btn" routerLink="/event-create">Create Event</a>
+    <a class="btn" routerLink="/manage-events">Manage Event / List</a>
+  </div>
+
+  <div class="links">
+    <label class="label">Event Detail (??? ID):</label>
+    <input #detailId type="number" min="1" class="id-input" />
+    <a class="btn" [routerLink]="['/events', detailId.value || 1]">Go</a>
+  </div>
+</div>

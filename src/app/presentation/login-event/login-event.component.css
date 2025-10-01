@@ -1,0 +1,57 @@
+/* Minimal look per mock */
+:host { display: block; height: 100%; }
+
+.login-page {
+  min-height: 100dvh;
+  background: #e8e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  background: #fff;
+  width: min(420px, 92vw);
+  min-height: 640px;
+  border: 1px solid #d9d9d9;
+  box-shadow: 0 0 0 6px #e8e6e6 inset;
+  padding: 36px 28px 24px;
+}
+
+.title {
+  text-align: center;
+  font-size: 28px;
+  margin: 12px 0 40px;
+}
+
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+
+.label { font-size: 18px; margin-top: 8px; }
+
+.input {
+  height: 48px;
+  border: 2px solid #222;
+  border-radius: 0;
+  padding: 8px 10px;
+  font-size: 16px;
+}
+.input.invalid { border-color: #e11; }
+
+.error-row {
+  display: flex; align-items: center; gap: 8px;
+  color: #d10; margin-top: 8px;
+}
+.error-icon {
+  width: 20px; height: 20px; border: 2px solid #d10; color: #d10;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; line-height: 1; font-size: 14px;
+}
+.error-text { font-size: 14px; }
+
+.actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+.btn-signin {
+  background: #d9d9d9; color: #111; border: 2px solid #111;
+  padding: 10px 22px; box-shadow: 2px 2px 0 #111; cursor: pointer;
+}
+.btn-signin:disabled { opacity: .7; cursor: default; box-shadow: none; }

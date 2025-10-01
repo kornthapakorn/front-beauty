@@ -1,0 +1,23 @@
+﻿<div class="section-node__content">
+  <div class="section-node__header">
+    <ng-content select="[section-node-header]"></ng-content>
+  </div>
+  <div class="section-node__body">
+    <ng-container *ngIf="hasChildren; else emptySection">
+      <ng-content select="[section-node-children]"></ng-content>
+    </ng-container>
+    <ng-template #emptySection>
+      <div class="section-node__empty"></div>
+    </ng-template>
+  </div>
+</div>
+
+<button
+  *ngIf="!frozen"
+  type="button"
+  class="section-node__add"
+  aria-label="Add component inside section"
+  (click)="onAddChild()"
+>
+  <span>+</span>
+</button>

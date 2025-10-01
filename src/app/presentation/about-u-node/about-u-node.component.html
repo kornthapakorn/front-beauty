@@ -1,0 +1,114 @@
+<div class="about">
+  <div class="about__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <button
+      type="button"
+      class="about__hero"
+      [class.about__hero--empty]="!hasHeroImage"
+      [disabled]="frozen"
+      (click)="onPickHero()"
+      aria-label="Select main image"
+    >
+      <ng-container *ngIf="hasHeroImage; else heroPlaceholder">
+        <img [src]="heroImage" alt="About hero" />
+      </ng-container>
+      <ng-template #heroPlaceholder>
+        <div class="about__hero-placeholder">
+          <img src="assets/icons/upload.png" alt="Upload" />
+        </div>
+      </ng-template>
+    </button>
+
+    <button
+      type="button"
+      class="about__cta"
+      [disabled]="frozen"
+      (click)="onEditHeadline()"
+      aria-label="Edit highlight text"
+    >
+      <span [class.about__cta--placeholder]="headlinePlaceholder">{{ headlineText }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="about__description"
+      [disabled]="frozen"
+      (click)="onEditDescription()"
+      aria-label="Edit description"
+    >
+      <span [class.about__description--placeholder]="descriptionPlaceholder">{{ descriptionText }}</span>
+    </button>
+
+    <div class="about__links-bar">
+      <span class="about__links-hint">Links</span>
+      <button
+        type="button"
+        class="about__gear"
+        [disabled]="frozen"
+        (click)="onConfigureLinks()"
+        aria-label="Configure link URLs"
+      >
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="about__grid">
+      <div class="about__card">
+        <button
+          type="button"
+          class="about__card-image"
+          [class.about__card-image--empty]="!leftImage"
+          [disabled]="frozen"
+          (click)="onPickCard('left')"
+          aria-label="Select left image"
+        >
+          <ng-container *ngIf="leftImage; else leftPlaceholder">
+            <img [src]="leftImage" alt="Left link" />
+          </ng-container>
+          <ng-template #leftPlaceholder>
+            <img src="assets/icons/upload.png" alt="Upload" />
+          </ng-template>
+        </button>
+
+        <button
+          type="button"
+          class="about__card-text"
+          [disabled]="frozen"
+          (click)="onEditCardText('left')"
+          aria-label="Edit left text"
+        >
+          <span [class.about__card-text--placeholder]="leftTextPlaceholder">{{ leftText }}</span>
+        </button>
+      </div>
+
+      <div class="about__card">
+        <button
+          type="button"
+          class="about__card-image"
+          [class.about__card-image--empty]="!rightImage"
+          [disabled]="frozen"
+          (click)="onPickCard('right')"
+          aria-label="Select right image"
+        >
+          <ng-container *ngIf="rightImage; else rightPlaceholder">
+            <img [src]="rightImage" alt="Right link" />
+          </ng-container>
+          <ng-template #rightPlaceholder>
+            <img src="assets/icons/upload.png" alt="Upload" />
+          </ng-template>
+        </button>
+
+        <button
+          type="button"
+          class="about__card-text"
+          [disabled]="frozen"
+          (click)="onEditCardText('right')"
+          aria-label="Edit right text"
+        >
+          <span [class.about__card-text--placeholder]="rightTextPlaceholder">{{ rightText }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

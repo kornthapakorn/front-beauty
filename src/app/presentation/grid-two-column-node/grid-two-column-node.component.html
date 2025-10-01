@@ -1,0 +1,76 @@
+<div class="grid-two">
+  <ng-content select="[node-header]"></ng-content>
+
+  <div class="grid-two__columns">
+    <div class="grid-two__column">
+      <button
+        type="button"
+        class="grid-two__image"
+        [class.grid-two__image--filled]="leftImage"
+        [disabled]="frozen"
+        (click)="onPick('left')"
+        aria-label="Select left image"
+      >
+        <ng-container *ngIf="leftImage; else leftPlaceholder">
+          <img [src]="leftImage" alt="left column" />
+        </ng-container>
+        <ng-template #leftPlaceholder>
+          <div class="grid-two__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" class="grid-two__placeholder-icon" />
+          </div>
+        </ng-template>
+      </button>
+
+      <button
+        type="button"
+        class="grid-two__caption"
+        [disabled]="frozen"
+        (click)="onEditText('left')"
+        aria-label="Edit left caption"
+      >
+        <span [class.grid-two__caption--placeholder]="leftTextPlaceholder">{{ leftText }}</span>
+      </button>
+    </div>
+
+    <div class="grid-two__column">
+      <button
+        type="button"
+        class="grid-two__image"
+        [class.grid-two__image--filled]="rightImage"
+        [disabled]="frozen"
+        (click)="onPick('right')"
+        aria-label="Select right image"
+      >
+        <ng-container *ngIf="rightImage; else rightPlaceholder">
+          <img [src]="rightImage" alt="right column" />
+        </ng-container>
+        <ng-template #rightPlaceholder>
+          <div class="grid-two__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" class="grid-two__placeholder-icon" />
+          </div>
+        </ng-template>
+      </button>
+
+      <button
+        type="button"
+        class="grid-two__caption"
+        [disabled]="frozen"
+        (click)="onEditText('right')"
+        aria-label="Edit right caption"
+      >
+        <span [class.grid-two__caption--placeholder]="rightTextPlaceholder">{{ rightText }}</span>
+      </button>
+    </div>
+  </div>
+    <div class="grid-two__actions">
+      <button
+        type="button"
+        class="grid-two__gear"
+        [disabled]="frozen"
+        (click)="onConfigureUrls()"
+        aria-label="Configure grid links"
+      >
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
+    </div>
+</div>

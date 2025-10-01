@@ -1,0 +1,31 @@
+<div class="table-desc">
+  <div class="table-desc__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="table-desc__card">
+      <button
+        type="button"
+        class="table-desc__row table-desc__row--title"
+        [class.table-desc__row--placeholder]="titlePlaceholder"
+        [disabled]="frozen"
+        (click)="onEdit('title')"
+        aria-label="Edit table title"
+      >
+        {{ titleText }}
+      </button>
+
+      <div class="table-desc__divider" aria-hidden="true"></div>
+
+      <button
+        type="button"
+        class="table-desc__row table-desc__row--desc"
+        [class.table-desc__row--placeholder]="descPlaceholder"
+        [disabled]="frozen"
+        (click)="onEdit('textDesc')"
+        aria-label="Edit table description"
+      >
+        {{ descText }}
+      </button>
+    </div>
+  </div>
+</div>

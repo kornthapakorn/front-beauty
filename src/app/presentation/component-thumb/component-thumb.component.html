@@ -1,0 +1,9 @@
+﻿<button type="button"
+        class="thumb-btn"
+        (click)="onClick()"
+        [attr.aria-label]="item.name || item.componentType">
+  <div class="thumb-icon">
+    <img class="thumb-img" [src]="icon" [alt]="item.name || item.componentType" />
+  </div>
+  <span class="thumb-label">{{ item.name || item.componentType }}</span>
+</button>

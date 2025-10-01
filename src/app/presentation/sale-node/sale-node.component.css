@@ -1,0 +1,184 @@
+﻿.sale-node {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sale-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #d8dee6;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.sale-editor__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sale-editor__row {
+  position: relative;
+}
+
+.sale-editor__field {
+  width: 100%;
+  border: 1px solid #d8dee6;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 1rem;
+  font-family: 'Kanit', 'Prompt', sans-serif;
+  font-weight: 500;
+  padding: 14px 16px;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sale-editor__field:disabled,
+.sale-editor__logo-text:disabled,
+.sale-editor__logo-image:disabled,
+.sale-editor__gear:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.sale-editor__field:not(:disabled):hover,
+.sale-editor__field:not(:disabled):focus-visible,
+.sale-editor__logo-text:not(:disabled):hover,
+.sale-editor__logo-text:not(:disabled):focus-visible,
+.sale-editor__logo-image:not(:disabled):hover,
+.sale-editor__logo-image:not(:disabled):focus-visible,
+.sale-editor__gear:not(:disabled):hover,
+.sale-editor__gear:not(:disabled):focus-visible {
+  border-color: #94a3f3;
+  box-shadow: 0 0 0 3px rgba(148, 163, 243, 0.25);
+}
+
+.sale-editor__field--price {
+  font-weight: 600;
+}
+
+.sale-editor__field--date {
+  justify-content: flex-start;
+  color: #1f2937;
+}
+
+.sale-editor__field--date i {
+  font-size: 1.3rem;
+  color: #475569;
+}
+
+.sale-editor__field--cta {
+  justify-content: space-between;
+}
+
+.sale-editor__field--cta i {
+  font-size: 1.1rem;
+  color: #475569;
+}
+
+.sale-editor__placeholder {
+  color: #a8b0c3;
+}
+
+.sale-editor__date-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.sale-editor__logos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.sale-editor__logos-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sale-editor__gear {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #d8dee6;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  cursor: pointer;
+}
+
+.sale-editor__logos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.sale-editor__logo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sale-editor__logo-image {
+  border: 1px dashed #d8dee6;
+  border-radius: 16px;
+  background: #ffffff;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sale-editor__logo-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.sale-editor__logo-image--empty i {
+  font-size: 2rem;
+  color: #d1d5db;
+}
+
+.sale-editor__logo-text {
+  border: 1px solid #d8dee6;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.95rem;
+  font-family: 'Kanit', 'Prompt', sans-serif;
+  color: #1f2937;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 520px) {
+  .sale-editor {
+    padding: 12px;
+  }
+  .sale-editor__logos-grid {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}

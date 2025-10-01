@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.image-desc {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.image-desc__inner {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #f4f4f5;
+  padding: 18px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.image-desc__card {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  background: #ffffff;
+  border: 1.5px solid #1f2937;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.image-desc__image {
+  flex: 0 0 50%;
+  border: none;
+  background: transparent;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.18s ease;
+}
+
+.image-desc__image--has-src {
+  padding: 12px;
+}
+
+.image-desc__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.image-desc__image:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.image-desc__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-desc__placeholder-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  opacity: 0.65;
+}
+
+.image-desc__divider {
+  width: 1.5px;
+  background: #1f2937;
+}
+
+.image-desc__text {
+  flex: 1 1 auto;
+  border: none;
+  background: #f6f6f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Judson', serif;
+  font-size: 1.05rem;
+  color: #4c5261;
+  cursor: pointer;
+  box-sizing: border-box;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  transition: background 0.18s ease;
+}
+
+.image-desc__text--placeholder {
+  color: #a0a7b3;
+  font-style: italic;
+}
+
+.image-desc__text:hover:not(:disabled) {
+  background: #eceff3;
+}
+
+.image-desc__image:disabled,
+.image-desc__text:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+  .image-desc__inner {
+    padding: 14px;
+    gap: 12px;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .image-desc__image {
+    padding: 18px;
+  }
+}
+
+
+
+
+
+

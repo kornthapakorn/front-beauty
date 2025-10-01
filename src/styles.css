@@ -1,1 +1,126 @@
-/* You can add global styles to this file, and also import other style files */
+/* 🌐 Global Font */
+body {
+    font-family: 'Judson', serif !important;
+}
+
+/* 📌 Base */
+.judson {
+    font-family: 'Judson', serif !important;
+}
+
+/* 📌 น้ำหนัก */
+.judson-bold {
+    font-weight: 700;
+}
+
+.judson-italic {
+    font-style: italic;
+}
+
+.judson-bold-italic {
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* 📌 ขนาด */
+.judson-sm {
+    font-size: 0.875rem;
+}
+
+/* 14px */
+.judson-md {
+    font-size: 1rem;
+}
+
+/* 16px */
+.judson-lg {
+    font-size: 1.25rem;
+}
+
+/* 20px */
+.judson-xl {
+    font-size: 1.5rem;
+}
+
+/* 24px */
+
+/* 📌 Responsive (mobile-first) */
+@media (min-width: 640px) {
+
+    /* sm: ≥640px */
+    .sm\:judson-sm {
+        font-size: 0.875rem;
+    }
+
+    .sm\:judson-md {
+        font-size: 1rem;
+    }
+
+    .sm\:judson-lg {
+        font-size: 1.25rem;
+    }
+
+    .sm\:judson-xl {
+        font-size: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+
+    /* md: ≥768px */
+    .md\:judson-sm {
+        font-size: 0.875rem;
+    }
+
+    .md\:judson-md {
+        font-size: 1rem;
+    }
+
+    .md\:judson-lg {
+        font-size: 1.25rem;
+    }
+
+    .md\:judson-xl {
+        font-size: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+
+    /* lg: ≥1024px */
+    .lg\:judson-sm {
+        font-size: 0.875rem;
+    }
+
+    .lg\:judson-md {
+        font-size: 1rem;
+    }
+
+    .lg\:judson-lg {
+        font-size: 1.25rem;
+    }
+
+    .lg\:judson-xl {
+        font-size: 1.5rem;
+    }
+}
+
+@media (min-width: 1280px) {
+
+    /* xl: ≥1280px */
+    .xl\:judson-sm {
+        font-size: 0.875rem;
+    }
+
+    .xl\:judson-md {
+        font-size: 1rem;
+    }
+
+    .xl\:judson-lg {
+        font-size: 1.25rem;
+    }
+
+    .xl\:judson-xl {
+        font-size: 1.5rem;
+    }
+}

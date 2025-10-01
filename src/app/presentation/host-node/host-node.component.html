@@ -1,0 +1,175 @@
+<div class="node" [class.node--section]="isSection">
+  <ng-template #nodeHeader>
+    <div class="node__header">
+      <div class="node__title">{{ title }}</div>
+      <div class="node__actions">
+        <button type="button" class="node__action" title="Move down" aria-label="Move down"
+          [disabled]="frozen || !canMoveDown()" (click)="emitMoveDown()">
+          <img src="assets/icons/down-arrow.png" alt="move down" />
+        </button>
+        <button type="button" class="node__action" title="Move up" aria-label="Move up"
+          [disabled]="frozen || !canMoveUp()" (click)="emitMoveUp()">
+          <img src="assets/icons/up-arrow.png" alt="move up" />
+        </button>
+        <button type="button" class="node__action" title="Move to out page" aria-label="Move to out page"
+          [disabled]="frozen" (click)="emitMoveToBack()">
+          <img src="assets/icons/kick.png" alt="move to out page" />
+        </button>
+        <button type="button" class="node__action node__action--danger" title="Delete component"
+          aria-label="Delete component" [disabled]="frozen" (click)="emitRemove()">
+          <img src="assets/icons/trash-comp.png" alt="delete component" />
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-container *ngIf="isSection; else nonSection">
+    <app-section-node [path]="path" [frozen]="frozen" [hasChildren]="children.length > 0"
+      (addChild)="addChild.emit($event)">
+      <ng-container section-node-header>
+        <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+      </ng-container>
+
+      <div section-node-children class="section-node__children">
+        <div class="section-node__child" *ngFor="let child of children; let idx = index; trackBy: trackChild">
+          <app-host-node [node]="child" [path]="append(path, idx)" [siblingsLen]="children.length"
+            (addChild)="addChild.emit($event)" (childMoveUp)="childMoveUp.emit($event)"
+            (childMoveDown)="childMoveDown.emit($event)" (childMoveToBack)="childMoveToBack.emit($event)"
+            (childRemove)="childRemove.emit($event)" (openPickerForNode)="openPickerForNode.emit($event)"
+            (openTextCfgForNode)="openTextCfgForNode.emit($event)" (openBtnCfgForNode)="openBtnCfgForNode.emit($event)"
+            (openGridImageForNode)="openGridImageForNode.emit($event)"
+            (openGridTextCfgForNode)="openGridTextCfgForNode.emit($event)"
+            (openGridUrlCfgForNode)="openGridUrlCfgForNode.emit($event)"
+            (openSaleTextCfgForNode)="openSaleTextCfgForNode.emit($event)"
+            (saleDateChange)="saleDateChange.emit($event)"></app-host-node>
+        </div>
+      </div>
+    </app-section-node>
+  </ng-container>
+
+  <ng-template #nonSection>
+    <div class="node__body">
+      <ng-container [ngSwitch]="normalizedTagName">
+        <app-banner-node *ngSwitchCase="'banner'" [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)" (openTextCfgForNode)="openTextCfgForNode.emit($event)"
+          (openBtnCfgForNode)="openBtnCfgForNode.emit($event)">
+          <ng-container banner-node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-banner-node>
+
+        <app-textbox-node *ngSwitchCase="'textbox'" [node]="node" [path]="path" [frozen]="frozen"
+          (openTextCfgForNode)="openTextCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-textbox-node>
+
+        <app-image-caption-node *ngSwitchCase="'imagewithcaption'" [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)" (openTextCfgForNode)="openTextCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-image-caption-node>
+
+        <app-image-desc-node *ngSwitchCase="'imagedesc'" [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)" (openTextCfgForNode)="openTextCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-image-desc-node>
+
+        <app-table-topic-desc-node *ngSwitchCase="'tablewithtopicanddesc'" [node]="node" [path]="path" [frozen]="frozen"
+          (openTextForField)="openTableTextCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-table-topic-desc-node>
+
+        <app-one-topic-image-caption-button-node *ngSwitchCase="'onetopicimagecaptionbutton'" [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)" (openTextForField)="openTableTextCfgForNode.emit($event)"
+          (openBtnCfgForNode)="openBtnCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-one-topic-image-caption-button-node>
+
+
+        <app-two-topic-image-caption-button-node *ngSwitchCase="'twotopicimagecaptionbutton'" [node]="node" [path]="path" [frozen]="frozen"
+          (openImageForSide)="openTwoTopicImageForNode.emit($event)" (openTextForField)="openTwoTopicTextCfgForNode.emit($event)"
+          (openBtnCfgForSide)="openTwoTopicBtnCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-two-topic-image-caption-button-node>
+        <app-about-u-node *ngSwitchCase="'aboutu'" [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)"
+          (openTextForField)="openTableTextCfgForNode.emit($event)"
+          (openGridImageForNode)="openGridImageForNode.emit($event)"
+          (openGridTextCfgForNode)="openGridTextCfgForNode.emit($event)"
+          (openGridUrlCfgForNode)="openGridUrlCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-about-u-node>
+
+        <app-grid-four-image-node *ngSwitchCase="'gridfourimage'" [node]="node" [path]="path" [frozen]="frozen"
+          (openImageForField)="openGridFourImageForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-grid-four-image-node>
+
+        <app-button-node *ngSwitchCase="'button'" [node]="node" [path]="path" [frozen]="frozen"
+          (openBtnCfgForNode)="openBtnCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-button-node>
+        <app-grid-two-column-node *ngSwitchCase="'gridtwocolumn'" [node]="node" [path]="path" [frozen]="frozen"
+          (openImageForSide)="openGridImageForNode.emit($event)" (openTextForSide)="openGridTextCfgForNode.emit($event)"
+          (openUrlConfig)="openGridUrlCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-grid-two-column-node>
+
+        <app-sale-node *ngSwitchCase="'sale'" [node]="node" [path]="path" [frozen]="frozen"
+          (openTextForField)="openSaleTextCfgForNode.emit($event)" (openBtnCfgForNode)="openBtnCfgForNode.emit($event)"
+          (openImageForSide)="openGridImageForNode.emit($event)" (openUrlConfig)="openGridUrlCfgForNode.emit($event)"
+          (endDateChange)="saleDateChange.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-sale-node>
+
+        <app-generic-node *ngSwitchDefault [node]="node" [path]="path" [frozen]="frozen"
+          (openPickerForNode)="openPickerForNode.emit($event)" (openTextCfgForNode)="openTextCfgForNode.emit($event)"
+          (openBtnCfgForNode)="openBtnCfgForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-generic-node>
+      </ng-container>
+    </div>
+  </ng-template>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

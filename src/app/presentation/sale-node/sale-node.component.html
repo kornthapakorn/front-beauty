@@ -1,0 +1,155 @@
+﻿<div class="sale-node">
+  <ng-content select="[node-header]"></ng-content>
+
+  <div class="sale-editor">
+    <div class="sale-editor__stack">
+      <button
+        type="button"
+        class="sale-editor__field"
+        [disabled]="frozen"
+        (click)="onEdit('title')"
+      >
+        <span [class.sale-editor__placeholder]="titlePlaceholder">{{ title }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="sale-editor__field"
+        [disabled]="frozen"
+        (click)="onEdit('text')"
+      >
+        <span [class.sale-editor__placeholder]="subtitlePlaceholder">{{ subtitle }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="sale-editor__field sale-editor__field--price"
+        [disabled]="frozen"
+        (click)="onEdit('promoPrice')"
+      >
+        <span [class.sale-editor__placeholder]="promoPricePlaceholder">{{ promoPriceDisplay }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="sale-editor__field sale-editor__field--price"
+        [disabled]="frozen"
+        (click)="onEdit('price')"
+      >
+        <span [class.sale-editor__placeholder]="pricePlaceholder">{{ priceDisplay }}</span>
+      </button>
+
+      <div class="sale-editor__row">
+        <button
+          type="button"
+          class="sale-editor__field sale-editor__field--date"
+          [disabled]="frozen"
+          (click)="onOpenDate()"
+        >
+          <i class="bi bi-calendar-event"></i>
+          <span [class.sale-editor__placeholder]="!hasCountdown">{{ hasCountdown ? countdownText : countdownLabel }}</span>
+        </button>
+        <input
+          #saleDateInput
+          type="datetime-local"
+          class="sale-editor__date-input"
+          [disabled]="frozen"
+          [value]="endDateInputValue"
+          (change)="onDateChange($event)"
+        />
+      </div>
+
+      <button
+        type="button"
+        class="sale-editor__field"
+        [disabled]="frozen"
+        (click)="onEdit('textDesc')"
+      >
+        <span [class.sale-editor__placeholder]="deadlinePlaceholder">{{ deadlineText }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="sale-editor__field sale-editor__field--cta"
+        [disabled]="frozen"
+        (click)="onConfigureButton()"
+      >
+        <span [class.sale-editor__placeholder]="buttonPlaceholder">{{ buttonLabel }}</span>
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
+
+      <button
+        type="button"
+        class="sale-editor__field"
+        [disabled]="frozen"
+        (click)="onEdit('textFooter')"
+      >
+        <span [class.sale-editor__placeholder]="footerPlaceholder">{{ footerText }}</span>
+      </button>
+    </div>
+
+    <div class="sale-editor__logos">
+      <div class="sale-editor__logos-toolbar">
+        <button
+          type="button"
+          class="sale-editor__gear"
+          [disabled]="frozen"
+          (click)="onConfigureUrls()"
+          aria-label="Configure gallery links"
+        >
+          <i class="bi bi-gear-fill" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="sale-editor__logos-grid">
+        <div class="sale-editor__logo-card">
+          <button
+            type="button"
+            class="sale-editor__logo-image"
+            [class.sale-editor__logo-image--empty]="!leftLogo"
+            [disabled]="frozen"
+            (click)="onPick('left')"
+          >
+            <ng-container *ngIf="leftLogo; else leftImagePlaceholder">
+              <img [src]="leftLogo" alt="Left sale image" />
+            </ng-container>
+            <ng-template #leftImagePlaceholder>
+              <i class="bi bi-image" aria-hidden="true"></i>
+            </ng-template>
+          </button>
+          <button
+            type="button"
+            class="sale-editor__logo-text"
+            [disabled]="frozen"
+            (click)="onEdit('leftText')"
+          >
+            <span [class.sale-editor__placeholder]="leftTextPlaceholder">{{ leftTextLabel }}</span>
+          </button>
+        </div>
+        <div class="sale-editor__logo-card">
+          <button
+            type="button"
+            class="sale-editor__logo-image"
+            [class.sale-editor__logo-image--empty]="!rightLogo"
+            [disabled]="frozen"
+            (click)="onPick('right')"
+          >
+            <ng-container *ngIf="rightLogo; else rightImagePlaceholder">
+              <img [src]="rightLogo" alt="Right sale image" />
+            </ng-container>
+            <ng-template #rightImagePlaceholder>
+              <i class="bi bi-image" aria-hidden="true"></i>
+            </ng-template>
+          </button>
+          <button
+            type="button"
+            class="sale-editor__logo-text"
+            [disabled]="frozen"
+            (click)="onEdit('rightText')"
+          >
+            <span [class.sale-editor__placeholder]="rightTextPlaceholder">{{ rightTextLabel }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

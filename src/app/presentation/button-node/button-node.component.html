@@ -1,0 +1,29 @@
+<div class="button-node">
+  <div class="button-node__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="button-node__card">
+      <div class="button-node__toolbar">
+        <button
+          type="button"
+          class="button-node__gear"
+          [disabled]="frozen"
+          (click)="onConfigure()"
+          aria-label="Configure button"
+        >
+          <i class="bi bi-gear-fill" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="button-node__cta"
+        [class.button-node__cta--inactive]="!buttonActive || !buttonLink"
+        (click)="onButtonClick($event)"
+        aria-label="Trigger button link"
+      >
+        {{ displayLabel }}
+      </button>
+    </div>
+  </div>
+</div>

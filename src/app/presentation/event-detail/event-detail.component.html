@@ -1,0 +1,22 @@
+<div class="p-6" *ngIf="!loading">
+  <ng-container *ngIf="event; else errorTpl">
+    <h2 class="text-2xl font-bold mb-4">รายละเอียดอีเวนต์</h2>
+    <div class="space-y-2">
+      <div><strong>ID:</strong> {{ event.id }}</div>
+      <div><strong>ชื่อ:</strong> {{ event.name }}</div>
+      <div><strong>เริ่ม:</strong> {{ event.startDate | date:'dd/MM/yyyy' }}</div>
+      <div><strong>สิ้นสุด:</strong> {{ event.endDate | date:'dd/MM/yyyy' }}</div>
+    </div>
+    <div class="mt-4">
+      <a routerLink="/lis-event" class="text-blue-600">ย้อนกลับ</a>
+    </div>
+  </ng-container>
+
+  <ng-template #errorTpl>
+    <div class="text-red-600">{{ error }}</div>
+    <div class="mt-4">
+      <a routerLink="/lis-event" class="text-blue-600">ย้อนกลับ</a>
+    </div>
+  </ng-template>
+</div>
+

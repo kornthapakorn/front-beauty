@@ -1,0 +1,34 @@
+<div class="image-caption">
+  <div class="image-caption__inner">
+    <ng-content select="[node-header]"></ng-content>
+    <div class="image-caption__card">
+      <button
+        type="button"
+        class="image-caption__image"
+        [class.image-caption__image--has-src]="imgSrc"
+        [disabled]="frozen"
+        (click)="onPickImage()"
+        aria-label="Select image"
+      >
+        <ng-container *ngIf="imgSrc; else placeholder">
+          <img [src]="imgSrc" alt="component image" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="image-caption__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" class="image-caption__placeholder-icon" />
+          </div>
+        </ng-template>
+      </button>
+
+      <button
+        type="button"
+        class="image-caption__caption"
+        [disabled]="frozen"
+        (click)="onEditText()"
+        aria-label="Edit caption"
+      >
+        <span [class.image-caption__caption--placeholder]="!displayText">{{ captionText }}</span>
+      </button>
+    </div>
+  </div>
+</div>

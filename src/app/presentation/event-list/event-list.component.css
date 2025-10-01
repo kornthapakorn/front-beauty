@@ -1,0 +1,74 @@
+/* คอลัมน์แนวตั้ง */
+.thumb-vertical {
+    width: min(920px, 96vw);
+    margin: 0 auto 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.thumb-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    background: transparent;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background .15s, transform .06s;
+}
+
+.thumb-row:hover {
+    background: #f6f8fb;
+    transform: translateY(-1px);
+}
+
+.thumb-row.compact {
+    padding: 8px 10px;
+}
+
+/* กล่องพรีวิว (กำหนดความสูงให้พอดี) */
+.thumb.only-preview {
+    width: 100%;
+    max-width: 560px;
+    height: 180px;
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+}
+
+@media (max-width:640px) {
+    .thumb.only-preview {
+        height: 140px;
+        max-width: 480px;
+    }
+}
+
+/* จัดให้เนื้อหาใน app-component-thumb อยู่กลางและไม่ล้น */
+:host ::ng-deep app-component-thumb {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+}
+
+/* ซ่อนชื่อ/คำอธิบายที่ component-thumb อาจแสดงเอง */
+:host ::ng-deep app-component-thumb .name,
+:host ::ng-deep app-component-thumb .caption,
+:host ::ng-deep app-component-thumb [data-caption],
+:host ::ng-deep app-component-thumb figcaption {
+    display: none !important;
+}
+
+/* รูป/แคนวาสภายใน ไม่ให้มีกรอบและย่อ-ขยายพอดีกรอบ */
+:host ::ng-deep app-component-thumb img,
+:host ::ng-deep app-component-thumb canvas,
+:host ::ng-deep app-component-thumb .banner-thumb {
+    max-width: 50%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border: none;
+    box-shadow: none;
+}

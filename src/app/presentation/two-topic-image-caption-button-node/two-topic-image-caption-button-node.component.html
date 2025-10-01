@@ -1,0 +1,135 @@
+<div class="two-topic">
+  <div class="two-topic__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="two-topic__card">
+      <div class="two-topic__column">
+        <button
+          type="button"
+          class="two-topic__title"
+          [class.two-topic__title--placeholder]="leftTitlePlaceholder"
+          [disabled]="frozen"
+          (click)="onEdit('left', 'title')"
+          aria-label="Edit left title"
+        >
+          {{ leftTitle }}
+        </button>
+
+        <button
+          type="button"
+          class="two-topic__image"
+          [class.two-topic__image--has-src]="leftImage"
+          [disabled]="frozen"
+          (click)="onPick('left')"
+          aria-label="Select left image"
+        >
+          <ng-container *ngIf="leftImage; else leftPlaceholder">
+            <img [src]="leftImage" alt="left preview" />
+          </ng-container>
+          <ng-template #leftPlaceholder>
+            <div class="two-topic__placeholder">
+              <img src="assets/icons/upload.png" alt="Upload image" />
+            </div>
+          </ng-template>
+        </button>
+
+        <button
+          type="button"
+          class="two-topic__desc"
+          [class.two-topic__desc--placeholder]="leftDescPlaceholder"
+          [disabled]="frozen"
+          (click)="onEdit('left', 'textDesc')"
+          aria-label="Edit left description"
+        >
+          {{ leftDesc }}
+        </button>
+
+        <div class="two-topic__footer">
+          <button
+            type="button"
+            class="two-topic__cta"
+            [class.two-topic__cta--inactive]="!leftButtonActive"
+            [disabled]="frozen"
+            (click)="onEditButton('left')"
+            aria-label="Edit left button"
+          >
+            {{ leftButtonLabel }}
+          </button>
+          <button
+            type="button"
+            class="two-topic__gear"
+            [disabled]="frozen"
+            (click)="onEditButton('left')"
+            aria-label="Configure left button"
+          >
+            <i class="bi bi-gear-fill" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="two-topic__column">
+        <button
+          type="button"
+          class="two-topic__title"
+          [class.two-topic__title--placeholder]="rightTitlePlaceholder"
+          [disabled]="frozen"
+          (click)="onEdit('right', 'title')"
+          aria-label="Edit right title"
+        >
+          {{ rightTitle }}
+        </button>
+
+        <button
+          type="button"
+          class="two-topic__image"
+          [class.two-topic__image--has-src]="rightImage"
+          [disabled]="frozen"
+          (click)="onPick('right')"
+          aria-label="Select right image"
+        >
+          <ng-container *ngIf="rightImage; else rightPlaceholder">
+            <img [src]="rightImage" alt="right preview" />
+          </ng-container>
+          <ng-template #rightPlaceholder>
+            <div class="two-topic__placeholder">
+              <img src="assets/icons/upload.png" alt="Upload image" />
+            </div>
+          </ng-template>
+        </button>
+
+        <button
+          type="button"
+          class="two-topic__desc"
+          [class.two-topic__desc--placeholder]="rightDescPlaceholder"
+          [disabled]="frozen"
+          (click)="onEdit('right', 'textDesc')"
+          aria-label="Edit right description"
+        >
+          {{ rightDesc }}
+        </button>
+
+        <div class="two-topic__footer">
+          <button
+            type="button"
+            class="two-topic__cta"
+            [class.two-topic__cta--inactive]="!rightButtonActive"
+            [disabled]="frozen"
+            (click)="onEditButton('right')"
+            aria-label="Edit right button"
+          >
+            {{ rightButtonLabel }}
+          </button>
+          <button
+            type="button"
+            class="two-topic__gear"
+            [disabled]="frozen"
+            (click)="onEditButton('right')"
+            aria-label="Configure right button"
+          >
+            <i class="bi bi-gear-fill" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

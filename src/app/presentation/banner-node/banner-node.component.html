@@ -1,0 +1,55 @@
+<div class="banner">
+  <ng-content select="[banner-node-header]"></ng-content>
+  <div class="banner__body">
+    <button
+      type="button"
+      class="banner__image"
+      [class.banner__image--has-src]="imgSrc"
+      [disabled]="frozen"
+      (click)="onPickImage()"
+      aria-label="Select banner image"
+    >
+      <ng-container *ngIf="imgSrc; else placeholder">
+        <img [src]="imgSrc" alt="banner preview" />
+      </ng-container>
+      <ng-template #placeholder>
+        <div class="banner__placeholder">
+          <img src="assets/icons/upload.png" alt="Upload image" class="banner__placeholder-icon" />
+        </div>
+      </ng-template>
+    </button>
+
+    <button
+      type="button"
+      class="banner__text"
+      [disabled]="frozen"
+      (click)="onEditText()"
+      aria-label="Edit banner text"
+    >
+      <span [class.banner__text--placeholder]="!displayText">{{ overlayText }}</span>
+    </button>
+
+    <div class="banner__cta-group">
+      <button
+        type="button"
+        class="banner__cta"
+        [class.banner__cta--inactive]="!buttonActive"
+        [disabled]="frozen"
+        (click)="onEditButton()"
+        aria-label="Edit banner button label"
+      >
+        {{ overlayButton }}
+      </button>
+
+      <button
+        type="button"
+        class="banner__gear"
+        [disabled]="frozen"
+        (click)="onEditButton()"
+        aria-label="Configure banner button"
+      >
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>

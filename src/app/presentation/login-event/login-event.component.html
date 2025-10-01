@@ -1,0 +1,27 @@
+<div class="login-page">
+  <div class="login-card">
+    <h1 class="title">Login</h1>
+
+    <form class="login-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <label for="username" class="label">Username</label>
+      <input id="username" type="text" class="input" formControlName="username"
+             [class.invalid]="isInvalid('username')" autocomplete="username" />
+
+      <label for="password" class="label">Password</label>
+      <input id="password" [type]="showPassword ? 'text' : 'password'" class="input" formControlName="password"
+             [class.invalid]="isInvalid('password')" autocomplete="current-password" />
+
+      <div *ngIf="authError" class="error-row">
+        <span class="error-icon">!</span>
+        <span class="error-text">Username or Password is Incorrect</span>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-signin" [disabled]="loading">
+          <span *ngIf="loading" class="spinner"></span>
+          Sign in
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,419 @@
+﻿<!-- Floating header actions -->
+<button class="floating-btn left" aria-label="Menu" (click)="toggleMenu()">
+  <img src="assets/icons/hamburger.png" alt="Hamburger" />
+</button>
+<button class="floating-btn right" aria-label="Logout" (click)="logout()">
+  <img src="assets/icons/logout.png" alt="Logout" />
+</button>
+
+<div class="page">
+  <input #componentImageInput type="file" accept="image/*" hidden (change)="onComponentImagePicked($event)" />
+  <form class="card form" [formGroup]="form" (ngSubmit)="save()">
+    <h2 class="form-title">Create Event</h2>
+
+    <!-- End Date -->
+    <div class="field" [class.invalid]="errors.endDate">
+      <label class="label">Event End Date</label>
+      <div class="input-wrap date-clickable"
+           (click)="openDate(endDateEl)" (keydown.enter)="openDate(endDateEl)"
+           (keydown.space)="openDate(endDateEl)" tabindex="0" role="button" aria-label="Pick end date">
+        <input #endDateEl type="date" class="input pr-edge"
+               formControlName="endDate" [min]="todayStr" />
+      </div>
+      <div *ngIf="errors.endDate" class="error">{{ errors.endDate }}</div>
+    </div>
+
+    <!-- Page banner (upload) -->
+    <div class="banner-preview clickable" [class.has-image]="!!bannerUrl"
+         (click)="onBannerBoxClick(fileInput, $event)" (keydown.enter)="onBannerBoxClick(fileInput, $event)"
+         (keydown.space)="onBannerBoxClick(fileInput, $event)"
+         (dragover)="onDragOver($event)" (drop)="onDrop($event)"
+         tabindex="0" role="button" aria-label="Upload banner">
+      <img *ngIf="bannerUrl; else emptyBan" [src]="bannerUrl" alt="banner preview"/>
+      <ng-template #emptyBan>
+        <img src="assets/icons/upload.png" alt="Banner" class="banner-empty-img">
+      </ng-template>
+      <div class="banner-actions">
+        <input #fileInput type="file" accept="image/*" (change)="onBannerPicked($event)" hidden />
+      </div>
+    </div>
+
+    <!-- Event Name + favorite -->
+    <div class="field" [class.invalid]="errors.eventName">
+      <label class="label">Event Name</label>
+      <div class="input-wrap">
+        <input type="text" class="input pr-action" formControlName="name" placeholder="Type event name" />
+        <button type="button" class="input-action fav-btn" (click)="toggleFav()" [class.active]="form.value.isFav">
+          <i class="bi" [ngClass]="form.value.isFav ? 'bi-star-fill' : 'bi-star'"></i>
+        </button>
+      </div>
+      <div *ngIf="errors.eventName" class="error">{{ errors.eventName }}</div>
+    </div>
+
+    <!-- Category -->
+    <div class="field">
+      <div class="row">
+        <h3 class="section-title">Category</h3>
+        <button type="button" class="icon-btn" (click)="openCategory()" title="Manage categories">
+          <i class="bi bi-gear"></i>
+        </button>
+      </div>
+
+      <div class="category-feedback error" *ngIf="categoryError && !categoryModalOpen">
+        {{ categoryError }}
+      </div>
+      <div class="category-feedback" *ngIf="categoryLoading && !categories.length">
+        Loading categories...
+      </div>
+
+      <ng-container *ngIf="categories.length; else noCats">
+        <div class="chips">
+          <button type="button" class="chip"
+                  *ngFor="let cat of categories"
+                  [class.filled]="cat.selected"
+                  (click)="toggleCategory(cat)">
+            {{ cat.name }}
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #noCats>
+        <div class="cat-divider">
+          <span *ngIf="!categoryLoading && !categoryError">No category yet. Use the gear icon to add one.</span>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Category modal -->
+    <div class="modal category-modal" *ngIf="categoryModalOpen">
+      <div class="backdrop" (click)="closeCategory()"></div>
+      <div class="panel" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="panel-header">
+          <h3>Manage Categories</h3>
+          <button type="button" class="icon-btn close-btn" aria-label="Close category modal" (click)="closeCategory()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="panel-body category-body">
+          <form class="category-form" [formGroup]="categoryForm" (ngSubmit)="createCategory()">
+            <label class="label">Category name:</label>
+            <div class="category-input-row">
+              <input type="text" class="input" formControlName="name" placeholder="Text here" />
+              <button type="submit" class="fab sm" [disabled]="categorySaving">
+                <i *ngIf="!categorySaving" class="bi bi-plus-lg"></i>
+                <span *ngIf="categorySaving" class="loading-dots">...</span>
+              </button>
+            </div>
+            <div class="category-error" *ngIf="categoryForm.get('name')?.touched && categoryForm.get('name')?.hasError('required')">
+              Category name is required.
+            </div>
+            <div class="category-error" *ngIf="categoryForm.get('name')?.hasError('maxlength')">
+              Maximum 100 characters.
+            </div>
+            <div class="category-error" *ngIf="categorySubmitError">{{ categorySubmitError }}</div>
+          </form>
+
+          <div class="category-list" *ngIf="!categoryLoading; else categoryLoadingTpl">
+            <div class="category-item" *ngFor="let cat of categories">
+              <button type="button" class="chip toggle"
+                      [class.filled]="cat.selected"
+                      (click)="toggleCategory(cat)">
+                {{ cat.name }}
+              </button>
+              <button type="button" class="icon-btn" title="Delete category" (click)="requestDeleteCategory(cat)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="category-feedback" *ngIf="!categories.length && !categoryError">
+              No categories yet. Add one above.
+            </div>
+            <div class="category-feedback error" *ngIf="categoryError">{{ categoryError }}</div>
+          </div>
+          <ng-template #categoryLoadingTpl>
+            <div class="category-feedback">Loading categories...</div>
+          </ng-template>
+        </div>
+        <div class="panel-footer">
+          <button type="button" class="btn primary" (click)="closeCategory()">Save &amp; Exit</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal confirm-modal" *ngIf="categoryModalOpen && categoryToDelete">
+      <div class="backdrop" (click)="cancelDeleteCategory()"></div>
+      <div class="panel confirm-panel" role="dialog" aria-modal="true">
+        <p>Do you want to delete?</p>
+        <div class="confirm-error" *ngIf="categoryDeleteError">{{ categoryDeleteError }}</div>
+        <div class="confirm-actions">
+          <button type="button" class="btn" (click)="cancelDeleteCategory()">Cancel</button>
+          <button type="button" class="btn danger" [disabled]="categoryDeleteLoading" (click)="confirmDeleteCategory()">
+            {{ categoryDeleteLoading ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page (components system) -->
+    <div class="field">
+      <div class="row right">
+        <h3 class="section-title">Page</h3>
+      </div>
+
+      <ul class="list">
+        <li class="item preview-item" *ngFor="let inst of frontComponents; let i = index; trackBy: trackByInst">
+          <div class="preview-content">
+            <app-host-node
+              [node]="inst"
+              [path]="[i]"
+              [siblingsLen]="frontComponents.length"
+              (addChild)="onAddChild($event)"
+              (childMoveUp)="onChildMoveUp($event)"
+              (childMoveDown)="onChildMoveDown($event)"
+              (childMoveToBack)="onChildMoveToBack($event)"
+              (childRemove)="onChildRemove($event)"
+              (openPickerForNode)="onOpenPickerForNode($event)"
+              (openTextCfgForNode)="onOpenTextCfgForNode($event)"
+              (openBtnCfgForNode)="onOpenBtnCfgForNode($event)"
+              (openGridImageForNode)="onOpenGridImageForNode($event)"
+              (openGridTextCfgForNode)="onOpenGridTextCfgForNode($event)"
+              (openTwoTopicImageForNode)="onOpenTwoTopicImageForNode($event)"
+              (openTwoTopicTextCfgForNode)="onOpenTwoTopicTextCfgForNode($event)"
+              (openTwoTopicBtnCfgForNode)="onOpenTwoTopicBtnCfgForNode($event)"
+              (openTableTextCfgForNode)="onOpenTableTextCfgForNode($event)"
+              (openGridFourImageForNode)="onOpenGridFourImageForNode($event)"
+              (openGridUrlCfgForNode)="onOpenGridUrlCfgForNode($event)"
+              (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
+              (saleDateChange)="onSaleDateChange($event)"
+              
+            >
+            </app-host-node>
+          </div>
+        </li>
+      </ul>
+
+      <div class="section-footer-cta">
+        <button type="button" class="btn outline">Preview</button>
+        <button type="button" class="fab" (click)="addFrontComp()">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Out of front page -->
+    <div class="field">
+      <div class="row right">
+        <h3 class="section-title">Out of front page</h3>
+      </div>
+
+      <ul class="list">
+        <li class="item preview-item" *ngFor="let inst of backComponents; let j = index">
+          <div class="preview-content" [ngClass]="inst.comp.tagName">
+            <div class="display_text">{{ inst.comp.name || inst.comp.tagName }}</div>
+          </div>
+
+          <div class="inline-actions">
+            <button type="button" class="icon-btn sm" (click)="moveToFront(j)">
+              <i class="bi bi-box-arrow-in-left"></i>
+            </button>
+            <button type="button" class="icon-btn sm" (click)="removeBackComp(j)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <div class="section-footer-cta">
+        <button type="button" class="fab" (click)="addBackComp()">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+    </div>
+
+        <!-- Banner inline edit -->
+<!-- Save -->
+    <div class="actions">
+      <button type="submit" class="btn primary" [disabled]="submitting">
+        {{ submitting ? 'Saving???' : 'Save & Exit' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal: Edit Text -->
+<div class="config-modal" *ngIf="textConfigTarget">
+  <div class="config-modal__backdrop" (click)="closeTextConfig()"></div>
+  <form
+    class="config-modal__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Edit banner text"
+    [formGroup]="textConfigForm"
+    (ngSubmit)="saveTextConfig()"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="config-modal__close" aria-label="Close text modal" (click)="closeTextConfig()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <h3 class="config-modal__title">Banner Text</h3>
+    <div class="config-modal__body">
+      <textarea
+        id="bannerTextInput"
+        class="config-modal__textarea"
+        formControlName="display_text"
+        rows="4"
+        placeholder="Text here"
+      ></textarea>
+    </div>
+    <div class="config-modal__actions">
+      <button type="submit" class="config-modal__primary">Save & Exit</button>
+    </div>
+  </form>
+</div>
+<!-- Modal: Grid Two Column URLs -->
+<div class="config-modal" *ngIf="gridTwoUrlTarget">
+  <div class="config-modal__backdrop" (click)="closeGridTwoUrlConfig()"></div>
+  <form
+    class="config-modal__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Configure grid two column URLs"
+    [formGroup]="gridTwoUrlForm"
+    (ngSubmit)="saveGridTwoUrlConfig()"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="config-modal__close" aria-label="Close grid url modal" (click)="closeGridTwoUrlConfig()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <h3 class="config-modal__title">Grid Two Column Links</h3>
+
+    <div class="config-modal__body">
+      <div class="config-modal__field">
+        <label class="config-modal__label" for="gridLeftUrl">URL Left Image:</label>
+        <input id="gridLeftUrl" type="text" class="config-modal__input" formControlName="leftUrl" placeholder="https://example.com" />
+      </div>
+      <div class="config-modal__field">
+        <label class="config-modal__label" for="gridRightUrl">URL Right Image:</label>
+        <input id="gridRightUrl" type="text" class="config-modal__input" formControlName="rightUrl" placeholder="https://example.com" />
+      </div>
+    </div>
+
+    <div class="config-modal__actions">
+      <button type="submit" class="config-modal__primary">Save & Exit</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal: Edit Button -->
+<div class="config-modal" *ngIf="buttonConfigTarget">
+  <div class="config-modal__backdrop" (click)="closeButtonConfig()"></div>
+  <form
+    class="config-modal__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Configure banner button"
+    [formGroup]="buttonConfigForm"
+    (ngSubmit)="saveButtonConfig()"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="config-modal__close" aria-label="Close button modal" (click)="closeButtonConfig()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <h3 class="config-modal__title">Button link</h3>
+
+    <div class="config-modal__body">
+      <div class="config-modal__field">
+        <label class="config-modal__label" for="buttonLabelInput">Button text</label>
+        <input
+          id="buttonLabelInput"
+          type="text"
+          class="config-modal__input"
+          formControlName="label"
+          placeholder="Text here"
+        />
+      </div>
+
+      <div class="config-modal__field config-modal__field--split">
+        <label class="config-modal__label">Activate button</label>
+        <div class="toggle">
+          <button
+            type="button"
+            class="toggle__option toggle__option--on"
+            [class.is-active]="isButtonActive"
+            (click)="setButtonActive(true)"
+          >
+            ON
+          </button>
+          <button
+            type="button"
+            class="toggle__option toggle__option--off"
+            [class.is-active]="!isButtonActive"
+            (click)="setButtonActive(false)"
+          >
+            OFF
+          </button>
+        </div>
+      </div>
+
+      <div class="config-modal__field">
+        <label class="config-modal__label" for="buttonLinkInput">URL:</label>
+        <input
+          id="buttonLinkInput"
+          type="url"
+          class="config-modal__input"
+          formControlName="link"
+          placeholder="https://example.com"
+        />
+      </div>
+      <input type="hidden" formControlName="active" />
+    </div>
+
+    <div class="config-modal__actions">
+      <button type="submit" class="config-modal__primary">Save & Exit</button>
+    </div>
+  </form>
+</div>
+<!-- Modal: Component -->
+<div class="modal component-picker-modal" *ngIf="frontPickerOpen">
+  <div class="backdrop" (click)="closeFrontPicker()"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Component picker">
+    <div class="panel-header">
+
+      <button type="button" class="icon-btn close-btn" aria-label="Close component picker" (click)="closeFrontPicker()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="panel-body">
+      <app-component-list [selectMode]="true" (selected)="onFrontSelected($event)"></app-component-list>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Save result -->
+<div class="modal" *ngIf="modalOpen">
+  <div class="backdrop" (click)="closeModal()"></div>
+  <div class="panel" role="dialog" aria-modal="true">
+    <div class="panel-body">
+      <p>{{ modalMessage }}</p>
+      <div class="section-footer-cta" style="justify-content: center; margin-top: 12px;">
+        <button type="button" class="btn primary" (click)="closeModal()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast popup -->
+<div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
+  <div class="toast-body">{{ toastMessage }}</div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+

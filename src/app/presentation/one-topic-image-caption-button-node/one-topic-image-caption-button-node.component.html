@@ -1,0 +1,70 @@
+<div class="one-topic">
+  <div class="one-topic__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="one-topic__card">
+      <button
+        type="button"
+        class="one-topic__title"
+        [class.one-topic__title--placeholder]="titlePlaceholder"
+        [disabled]="frozen"
+        (click)="onEdit('title')"
+        aria-label="Edit title"
+      >
+        {{ titleText }}
+      </button>
+
+      <button
+        type="button"
+        class="one-topic__image"
+        [class.one-topic__image--has-src]="imageSrc"
+        [disabled]="frozen"
+        (click)="onPickImage()"
+        aria-label="Select image"
+      >
+        <ng-container *ngIf="imageSrc; else placeholder">
+          <img [src]="imageSrc" alt="topic preview" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="one-topic__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" />
+          </div>
+        </ng-template>
+      </button>
+
+      <button
+        type="button"
+        class="one-topic__desc"
+        [class.one-topic__desc--placeholder]="descPlaceholder"
+        [disabled]="frozen"
+        (click)="onEdit('textDesc')"
+        aria-label="Edit description"
+      >
+        {{ descText }}
+      </button>
+
+      <div class="one-topic__footer">
+        <button
+          type="button"
+          class="one-topic__cta"
+          [class.one-topic__cta--inactive]="!buttonActive"
+          [disabled]="frozen"
+          (click)="onEditButton()"
+          aria-label="Edit button label"
+        >
+          {{ buttonLabel }}
+        </button>
+
+        <button
+          type="button"
+          class="one-topic__gear"
+          [disabled]="frozen"
+          (click)="onEditButton()"
+          aria-label="Configure button"
+        >
+          <i class="bi bi-gear-fill" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

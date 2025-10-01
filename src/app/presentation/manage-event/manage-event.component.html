@@ -1,0 +1,190 @@
+﻿<!-- Floating header actions -->
+<button class="floating-btn left" aria-label="Menu" (click)="toggleMenu()">
+  <img src="assets/icons/hamburger.png" alt="Hamburger" />
+</button>
+<button class="floating-btn right" aria-label="Logout" (click)="logout()">
+  <img src="assets/icons/logout.png" alt="Logout" />
+</button>
+
+<div class="wrapper judson">
+  <!-- Search -->
+  <div class="on-table">
+    <div class="search-bar">
+      <input type="text" [formControl]="search" (input)="onSearch()" placeholder="Search events..." />
+    </div>
+  </div>
+
+  <!-- Add Event -->
+  <div class="add-event-row">
+    <button class="add-fab" (click)="addEvent()"><i class="bi bi-plus"></i></button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th class="judson-bold">Event</th>
+          <th class="judson-bold">Manage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="filteredEvents.length; else noData">
+          <tr *ngFor="let e of filteredEvents" [class.row-hidden]="e.isHidden">
+            <td class="event">
+              {{ e.name }}
+              <i *ngIf="e.isHidden" class="bi bi-eye-slash-fill eye-flag"></i>
+            </td>
+            <td class="manage">
+              <div class="inline-actions">
+                <button class="icon-btn" (click)="editEvent(e)" title="แก้ไข">
+                  <img src="assets/icons/edit.png" alt="แก้ไข" />
+                </button>
+                <button class="icon-btn" (click)="viewForm(e)" title="ดูฟอร์ม">
+                  <img src="assets/icons/form.png" alt="ฟอร์ม" />
+                </button>
+                <button class="icon-btn" (click)="toggleActionMenu(e, $event)" title="เมนูเพิ่มเติม">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+
+                <div class="action-menu" *ngIf="openMenuId === e.id" [ngClass]="menuPosition" (click)="$event.stopPropagation()">
+                  <div class="action-row">
+                    <button class="action-item" (click)="copyLink(e)"><img src="assets/icons/copylink.png" alt="คัดลอกลิงก์" /></button>
+                  </div>
+                  <div class="action-row">
+                    <button class="action-item" (click)="duplicateEvent(e)"><img src="assets/icons/duplicate.png" alt="ทำซ้ำ" /></button>
+                  </div>
+                  <div class="action-row">
+                    <button class="action-item" [class.bg-black]="e.isHidden" (click)="toggleHidden(e)">
+                      <img [src]="e.isHidden ? 'assets/icons/closeeye.png' : 'assets/icons/eye.png'" alt="ซ่อน/แสดง" />
+                    </button>
+                  </div>
+                  <div class="action-row">
+                    <button class="action-item danger" (click)="confirmDelete(e)">
+                      <img src="assets/icons/trash.png" alt="ลบ" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #noData>
+  <tr><td colspan="2" class="text-center">No data</td></tr>
+</ng-template>
+
+<!-- Contact Dock -->
+<div class="contact-dock">
+  <span class="contact-dock__label">{{ dock.title || 'ช่องทางการติดต่อ' }}</span>
+
+  <button type="button" class="contact-dock__settings"
+          (click)="openContactModal()" aria-label="Manage contacts">
+    <i class="bi bi-gear"></i>
+  </button>
+
+  <div class="contact-dock__main">
+    <div class="contact-dock__icons" [class.empty]="!(dock.links?.length)">
+      <ng-container *ngIf="dock.links?.length; else noContacts">
+        <button type="button"
+                class="contact-icon"
+                *ngFor="let link of dock.links; trackBy: trackByIndex"
+                (click)="openContactLink(link.url)"
+                [attr.aria-label]="link.url || contactLinkLabel"
+                [title]="contactLinkLabel">
+          <img *ngIf="link.image" [src]="toImg(link.image)" alt="contact icon" />
+          <span *ngIf="!link.image">?</span>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<ng-template #noContacts>
+  <span class="contact-dock__empty">โปรดเพิ่มช่องทางติดต่อ</span>
+</ng-template>
+
+<!-- Contact modal -->
+<div class="contact-modal-backdrop" *ngIf="contactModalOpen" (click)="closeContactModal()">
+  <div class="contact-modal-card" (click)="$event.stopPropagation()">
+    <div class="contact-modal-header">
+      <h3 class="judson-bold">จัดการช่องทางการติดต่อ</h3>
+      <button type="button" class="icon-btn" (click)="closeContactModal()" aria-label="Close contact modal">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="contact-modal-body">
+      <div class="contact-status" *ngIf="contactLoading">กำลังโหลดข้อมูล...</div>
+      <div class="contact-status error" *ngIf="contactError">{{ contactError }}</div>
+
+      <label class="contact-url-label">หัวข้อ</label>
+      <input class="input" type="text" [formControl]="contactTitle" placeholder="เช่น ช่องทางการติดต่อ" />
+
+      <div class="contact-list" *ngIf="!contactLoading">
+        <div class="contact-item" *ngFor="let group of picControls; let i = index; trackBy: trackByIndex" [formGroup]="group">
+          <div class="contact-item-header">
+            <button type="button" class="icon-btn" (click)="requestDeleteContact(i)" title="ลบ">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+
+          <div class="contact-image-box">
+            <input type="file" accept="image/*" (change)="onContactImagePicked(i, $event)" title="??????????" />
+            <ng-container *ngIf="group.controls.imageId.value; else contactUploadIcon">
+              <img [src]="toImg(group.controls.imageId.value)" alt="preview" />
+            </ng-container>
+          </div>
+          <ng-template #contactUploadIcon>
+            <img src="assets/icons/upload.png" alt="Upload image" class="contact-image-box__icon" />
+          </ng-template>
+
+          <label class="contact-url-label">ลิงก์</label>
+          <input type="url" class="input" formControlName="url" placeholder="https://example.com" />
+
+          <div class="contact-field-error" *ngIf="group.controls.url.invalid && group.controls.url.touched">
+            กรุณากรอก URL ให้ถูกต้อง
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-save-error" *ngIf="contactSaveError">{{ contactSaveError }}</div>
+    </div>
+
+    <div class="contact-modal-footer">
+      <button type="button" class="fab contact-add" (click)="addContactPic()">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+      <button type="button" class="btn contact-save" [disabled]="contactSaving" (click)="saveContacts()">
+        {{ contactSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Event delete confirm -->
+<div class="modal-backdrop" *ngIf="deleteConfirm.open" (click)="cancelDelete()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <p>ยืนยันการลบกิจกรรมนี้หรือไม่?</p>
+    <div class="modal-card__actions">
+      <button type="button" class="btn ghost" (click)="cancelDelete()">ยกเลิก</button>
+      <button type="button" class="btn danger" (click)="doDelete()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic modal -->
+<div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()">
+  <div class="modal-card" [class.error]="modalType === 'error'" (click)="$event.stopPropagation()">
+    <p>{{ modalMessage }}</p>
+    <button type="button" class="btn" (click)="closeModal()">ปิด</button>
+  </div>
+</div>
+
+
+
+

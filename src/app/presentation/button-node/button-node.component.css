@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.button-node {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.button-node__inner {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.button-node__card {
+  width: 100%;
+  padding: 20px 20px 28px;
+  background: #f4f5f7;
+  border: 1.5px solid #1f2937;
+  border-radius: 16px;
+  box-shadow: 0 14px 24px rgba(15, 23, 42, 0.1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.button-node__toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button-node__gear {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #ffffff;
+  color: #1f2937;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.button-node__gear:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px rgba(15, 23, 42, 0.24);
+}
+
+.button-node__gear:disabled {
+  cursor: default;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+.button-node__cta {
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #d8dbe1 0%, #c2c5cc 100%);
+  color: #4f5663;
+  font-family: 'Judson', serif;
+  font-size: 1.18rem;
+  font-weight: 600;
+  padding: 18px 16px;
+  box-shadow: 0 14px 22px rgba(15, 23, 42, 0.16);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.button-node__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 28px rgba(15, 23, 42, 0.18);
+  filter: brightness(1.05);
+}
+
+.button-node__cta--inactive {
+  background: linear-gradient(180deg, #eceff3 0%, #dfe3e8 100%);
+  color: #9aa3b5;
+  box-shadow: none;
+  cursor: default;
+  filter: none;
+  transform: none;
+}
+

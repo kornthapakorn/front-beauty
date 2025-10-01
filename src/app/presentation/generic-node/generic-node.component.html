@@ -1,0 +1,32 @@
+﻿<ng-content select="[node-header]"></ng-content>
+<div class="node__preview" [class.node__preview--has-image]="imgSrc">
+  <ng-container *ngIf="hasPreview; else placeholder">
+    <img *ngIf="imgSrc" [src]="imgSrc" alt="component preview" class="node__image" />
+    <div *ngIf="displayText" class="node__text">{{ displayText }}</div>
+    <div *ngIf="buttonLabel" class="node__button-preview">{{ buttonLabel }}</div>
+  </ng-container>
+  <ng-template #placeholder>
+    <span class="node__placeholder">Component preview</span>
+  </ng-template>
+
+  <div class="node__quick-actions" *ngIf="quickActionsVisible">
+    <button
+      type="button"
+      class="node__quick-action"
+      aria-label="Configure text"
+      *ngIf="hasTextConfig"
+      (click)="openTextCfgForNode.emit(path)"
+    >
+      <i class="bi bi-fonts"></i>
+    </button>
+    <button
+      type="button"
+      class="node__quick-action"
+      aria-label="Configure button"
+      *ngIf="hasButtonConfig"
+      (click)="openBtnCfgForNode.emit(path)"
+    >
+      <i class="bi bi-ui-checks"></i>
+    </button>
+  </div>
+</div>

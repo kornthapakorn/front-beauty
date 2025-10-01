@@ -1,0 +1,39 @@
+﻿:host {
+  display: block;
+}
+
+.textbox {
+  width: 100%;
+  padding: 12px 0;
+}
+
+.textbox__input {
+  width: 100%;
+  border: 2px solid #1f2937;
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 16px 18px;
+  text-align: left;
+  font-size: 1rem;
+  font-family: 'Judson', serif;
+  color: #0f172a;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.textbox__input:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+}
+
+.textbox__input:disabled {
+  cursor: default;
+  opacity: 0.7;
+  box-shadow: none;
+  transform: none;
+}
+
+.textbox__placeholder {
+  color: #6b7280;
+  font-style: italic;
+}

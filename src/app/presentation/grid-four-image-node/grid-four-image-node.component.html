@@ -1,0 +1,26 @@
+<div class="grid-four">
+  <div class="grid-four__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="grid-four__card">
+      <button
+        type="button"
+        class="grid-four__image"
+        *ngFor="let field of fields; trackBy: trackField"
+        [class.grid-four__image--has-src]="hasImage(field)"
+        [disabled]="frozen"
+        (click)="onPick(field)"
+        [attr.aria-label]="'Select ' + field"
+      >
+        <ng-container *ngIf="hasImage(field); else placeholder">
+          <img [src]="getImage(field)" alt="Grid thumbnail" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="grid-four__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" class="grid-four__placeholder-icon" />
+          </div>
+        </ng-template>
+      </button>
+    </div>
+  </div>
+</div>

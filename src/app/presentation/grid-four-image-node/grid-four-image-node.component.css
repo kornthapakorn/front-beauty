@@ -1,0 +1,108 @@
+/* ----- Global resets / sizing ----- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* ให้ padding/border ถูกรวมในความกว้าง ป้องกันล้น */
+}
+
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+/* ----- Layout wrappers ----- */
+.grid-four {
+  width: 100%;
+  display: flex;
+  align-items: stretch;          /* เดิมใช้ justify-content: stretch (ไม่รองรับ) */
+}
+
+.grid-four__inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;              /* กันเนื้อหาภายในล้น */
+}
+
+/* ----- Card / grid ----- */
+.grid-four__card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+  box-sizing: border-box;        /* สำคัญ: ป้องกันกล่องล้นจาก padding + gap */
+  max-width: 100%;
+}
+
+/* ----- Image cell ----- */
+.grid-four__image {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  cursor: pointer;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;              /* กันเนื้อหาภายในล้นขอบโค้ง */
+}
+
+.grid-four__image--has-src {
+  padding: 10px;
+}
+
+.grid-four__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;           /* ให้ภาพไม่บิดและไม่ล้น */
+  display: block;
+}
+
+/* ----- States ----- */
+.grid-four__image:hover:not(:disabled) {
+  background: #eef2ff;
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.14);
+}
+
+.grid-four__image:disabled {
+  cursor: default;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* ----- Placeholder ----- */
+.grid-four__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-four__placeholder-icon {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  opacity: 0.55;
+  display: block;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 640px) {
+  .grid-four__card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-four__image {
+    min-height: 82px;
+    padding: 16px;
+  }
+}

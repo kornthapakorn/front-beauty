@@ -1,0 +1,37 @@
+<div class="image-desc">
+  <div class="image-desc__inner">
+    <ng-content select="[node-header]"></ng-content>
+
+    <div class="image-desc__card">
+      <button
+        type="button"
+        class="image-desc__image"
+        [class.image-desc__image--has-src]="imgSrc"
+        [disabled]="frozen"
+        (click)="onPickImage()"
+        aria-label="Select image"
+      >
+        <ng-container *ngIf="imgSrc; else placeholder">
+          <img [src]="imgSrc" alt="Image description graphic" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="image-desc__placeholder">
+            <img src="assets/icons/upload.png" alt="Upload image" class="image-desc__placeholder-icon" />
+          </div>
+        </ng-template>
+      </button>
+
+      <div class="image-desc__divider" aria-hidden="true"></div>
+
+      <button
+        type="button"
+        class="image-desc__text"
+        [disabled]="frozen"
+        (click)="onEditText()"
+        aria-label="Edit description text"
+      >
+        <span [class.image-desc__text--placeholder]="!displayText">{{ overlayText }}</span>
+      </button>
+    </div>
+  </div>
+</div>

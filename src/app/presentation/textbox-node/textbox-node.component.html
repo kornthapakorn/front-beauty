@@ -1,0 +1,12 @@
+﻿<ng-content select="[node-header]"></ng-content>
+<div class="textbox">
+  <button
+    type="button"
+    class="textbox__input"
+    [disabled]="frozen"
+    (click)="onEditText()"
+    aria-label="Edit text"
+  >
+    <span [class.textbox__placeholder]="!displayText">{{ placeholderText }}</span>
+  </button>
+</div>
