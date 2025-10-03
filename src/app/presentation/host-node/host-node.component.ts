@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 import { BannerNodeComponent } from '../banner-node/banner-node.component';
 import { ButtonNodeComponent } from '../button-node/button-node.component';
@@ -8,6 +8,7 @@ import { GenericNodeComponent } from '../generic-node/generic-node.component';
 import { ImageCaptionNodeComponent } from '../image-caption-node/image-caption-node.component';
 import { ImageDescNodeComponent } from '../image-desc-node/image-desc-node.component';
 import { AboutUNodeComponent } from '../about-u-node/about-u-node.component';
+import { FormTemplateNodeComponent, FormTemplateTextEvent } from '../form-template-node/form-template-node.component';
 import { TableTopicDescNodeComponent, TableTopicDescEvent } from '../table-topic-desc-node/table-topic-desc-node.component';
 import { OneTopicImageCaptionButtonNodeComponent } from '../one-topic-image-caption-button-node/one-topic-image-caption-button-node.component';
 import { TwoTopicImageCaptionButtonNodeComponent, TwoTopicImageCaptionButtonEvent, TwoTopicTextEvent } from '../two-topic-image-caption-button-node/two-topic-image-caption-button-node.component';
@@ -35,19 +36,24 @@ import { TextboxNodeComponent } from '../textbox-node/textbox-node.component';
     OneTopicImageCaptionButtonNodeComponent,
     TwoTopicImageCaptionButtonNodeComponent,
     GridTwoColumnNodeComponent,
-    SaleNodeComponent
+    SaleNodeComponent,
+    FormTemplateNodeComponent
   ],
   templateUrl: './host-node.component.html',
   styleUrls: ['./host-node.component.css']
 })
 export class HostNodeComponent {
+  @ViewChild(FormTemplateNodeComponent) private formTemplateChild?: FormTemplateNodeComponent;
   @Input() node!: HostNode;
   @Input() path: number[] = [];
   @Input() siblingsLen = 0;
+  @Input() mode: 'front' | 'back' = 'front';
+  @Input() rootDepth = 1;
   @Output() addChild = new EventEmitter<number[]>();
   @Output() childMoveUp = new EventEmitter<MoveEvent>();
   @Output() childMoveDown = new EventEmitter<MoveEvent>();
   @Output() childMoveToBack = new EventEmitter<MoveEvent>();
+  @Output() moveToFront = new EventEmitter<MoveEvent>();
   @Output() childRemove = new EventEmitter<MoveEvent>();
   @Output() openPickerForNode = new EventEmitter<number[]>();
   @Output() openTextCfgForNode = new EventEmitter<number[]>();
@@ -62,6 +68,7 @@ export class HostNodeComponent {
   @Output() openGridUrlCfgForNode = new EventEmitter<number[]>();
   @Output() openSaleTextCfgForNode = new EventEmitter<SaleTextEvent>();
   @Output() saleDateChange = new EventEmitter<SaleDateChangeEvent>();
+  @Output() openFormTemplateText = new EventEmitter<FormTemplateTextEvent>();
 
   get title(): string {
     return (
@@ -80,6 +87,9 @@ export class HostNodeComponent {
   get isSection(): boolean {
     return this.normalizedTagName === 'section';
   }
+  get isFormTemplate(): boolean {
+    return this.normalizedTagName === 'formtemplate';
+  }
 
   get children(): HostNode[] {
     const arr = this.node?.props?.children;
@@ -89,6 +99,35 @@ export class HostNodeComponent {
   get frozen(): boolean {
     return this.toBool(this.node?.comp?.isFreeze);
   }
+
+  get isRoot(): boolean {
+    return this.path.length === this.rootDepth;
+  }
+
+  openFormTemplateConfig(): void {
+    if (this.frozen) return;
+    this.formTemplateChild?.openConfig();
+  }
+
+  get showMoveButton(): boolean {
+    return this.mode === 'back' ? this.isRoot : true;
+  }
+
+  get moveButtonTitle(): string {
+    return this.mode === 'back' ? 'Move to front page' : 'Move to out page';
+  }
+
+  get moveButtonAria(): string {
+    return this.mode === 'back' ? 'Move component back to front page' : 'Move component to out of front page list';
+  }
+  get moveButtonIcon(): string {
+    return this.mode === 'back' ? 'assets/icons/lift.png' : 'assets/icons/kick.png';
+  }
+
+  get showReorderButtons(): boolean {
+    return this.mode === 'front' || !this.isRoot;
+  }
+
 
   canMoveUp(): boolean {
     return this.path.length > 0 && this.myIndex > 0;
@@ -111,7 +150,11 @@ export class HostNodeComponent {
   }
 
   emitMoveToBack(): void {
-    this.childMoveToBack.emit({ path: this.parentPath, index: this.myIndex });
+    if (this.mode === 'back') {
+      this.moveToFront.emit({ path: this.parentPath, index: this.myIndex });
+    } else {
+      this.childMoveToBack.emit({ path: this.parentPath, index: this.myIndex });
+    }
   }
 
   emitRemove(): void {
@@ -145,6 +188,15 @@ export class HostNodeComponent {
     return !!value;
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,152 @@
+<div class="form-template">
+  <div class="form-template__header">
+    <ng-content select="[node-header]"></ng-content>
+  </div>
+
+  <div
+    class="form-template__card"
+    role="button"
+    tabindex="0"
+    (click)="onRootCardActivate($event)"
+    (keydown.enter)="onRootCardActivate($event)"
+    (keydown.space)="onRootCardActivate($event)"
+    [class.form-template__card--disabled]="frozen"
+  >
+    <div class="form-template__card-title">{{ title }}</div>
+    <div class="form-template__card-image">
+      <img [src]="iconSrc" alt="Form template thumbnail" />
+    </div>
+  </div>
+
+  <div class="form-template__modal" *ngIf="configOpen">
+    <div class="form-template__modal-backdrop" (click)="closeConfig()"></div>
+    <div class="form-template__modal-panel" role="dialog" aria-modal="true" aria-label="Configure form template" (click)="$event.stopPropagation()">
+      <button type="button" class="form-template__modal-close" (click)="closeConfig()" aria-label="Close form configuration">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="form-template__modal-card">
+        <div class="form-template__group">
+          <label>URL:</label>
+          <div class="form-template__input-wrapper">
+            <input type="text" readonly [value]="formUrl" />
+            <button type="button" (click)="copyUrl()" [disabled]="frozen" aria-label="Copy form URL">
+              <i class="bi" [ngClass]="copied ? 'bi-check2' : 'bi-clipboard'"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-template__group">
+          <label>Topic:</label>
+          <button type="button" class="form-template__plain-field" (click)="openTopic()" [disabled]="frozen">
+            <span [class.form-template__placeholder]="!props.topic">{{ props.topic || 'Text Here' }}</span>
+          </button>
+        </div>
+
+        <div class="form-template__divider"></div>
+
+        <div class="form-template__components">
+          <div class="form-template__component" *ngFor="let comp of activeComponents; let i = index; trackBy: trackByComponent">
+            <span>{{ getComponentLabel(comp.componentType) }}</span>
+            <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="form-template__fab" (click)="togglePalette()" [disabled]="frozen" aria-label="Add component">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+
+        <div class="form-template__divider"></div>
+
+        <div class="form-template__popup">
+          <span>Popup after submit</span>
+          <button type="button" class="form-template__popup-image" (click)="openPopupImage()" [disabled]="frozen">
+            <ng-container *ngIf="props.popupImage; else popupPlaceholder">
+              <img [src]="props.popupImage" alt="Popup preview" />
+            </ng-container>
+            <ng-template #popupPlaceholder>
+              <i class="bi bi-image"></i>
+            </ng-template>
+          </button>
+          <button type="button" class="form-template__plain-field" (click)="openPopupText()" [disabled]="frozen">
+            <span [class.form-template__placeholder]="!props.popupText">{{ props.popupText || 'Text Here' }}</span>
+          </button>
+        </div>
+
+        <div class="form-template__divider"></div>
+
+        <button type="button" class="form-template__primary" (click)="openButtonLabel()" [disabled]="frozen">
+          {{ props.textOnButton || 'Text Here' }}
+        </button>
+
+        <div class="form-template__divider"></div>
+
+        <div class="form-template__group">
+          <label>URL:</label>
+          <div class="form-template__input-wrapper">
+            <input type="text" readonly [value]="formUrl" />
+            <button type="button" (click)="copyUrl()" [disabled]="frozen" aria-label="Copy form URL">
+              <i class="bi" [ngClass]="copied ? 'bi-check2' : 'bi-clipboard'"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-template__actions">
+          <button type="button" (click)="closeConfig()" [disabled]="frozen">Save &amp; Exit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-template__palette" *ngIf="componentsMenuOpen">
+    <div class="form-template__palette-backdrop" (click)="togglePalette()"></div>
+    <div class="form-template__palette-panel" (click)="$event.stopPropagation()">
+      <button type="button" class="form-template__palette-close" (click)="togglePalette()" aria-label="Close component picker">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <div class="form-template__palette-list">
+        <button type="button" *ngFor="let item of palette" (click)="addComponent(item.type)" [disabled]="frozen" [attr.aria-label]="item.label">
+          <span>{{ item.label }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-template__single-modal" *ngIf="singleSelectionModalOpen">
+    <div class="form-template__single-modal-backdrop" (click)="closeSingleSelectionConfig()"></div>
+    <div class="form-template__single-modal-panel" role="dialog" aria-modal="true" aria-label="Configure single selection" (click)="$event.stopPropagation()">
+      <div class="form-template__single-modal-header">
+        <h3>Single selection</h3>
+        <button type="button" class="form-template__single-close" (click)="closeSingleSelectionConfig()" aria-label="Close single selection modal">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="form-template__single-modal-body">
+        <div class="form-template__single-row" *ngFor="let option of singleSelectionOptions; let idx = index">
+          <input type="text" [(ngModel)]="singleSelectionOptions[idx]" [ngModelOptions]="{ standalone: true, updateOn: 'blur' }" placeholder="Selection name" [disabled]="frozen" />
+          <button type="button" class="form-template__single-row-remove" (click)="requestSingleSelectionRemoval(idx)" [disabled]="frozen" aria-label="Remove selection">
+            <i class="bi bi-trash"></i>
+          </button>
+          <div class="form-template__single-row-confirm" *ngIf="singleSelectionDeleteIndex === idx">
+            <p>Do you want to delete ?</p>
+            <div class="form-template__single-row-confirm-actions">
+              <button type="button" class="form-template__single-confirm-btn" (click)="cancelSingleSelectionRemoval()">Cancel</button>
+              <button type="button" class="form-template__single-confirm-btn form-template__single-confirm-btn--danger" (click)="confirmSingleSelectionRemoval(idx)">Delete</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="form-template__single-option-add" (click)="addSingleSelectionOption()" [disabled]="frozen">
+          <i class="bi bi-plus-lg"></i>
+          Add option
+        </button>
+      </div>
+      <div class="form-template__single-modal-footer">
+        <button type="button" class="form-template__single-save" (click)="saveSingleSelectionOptions()" [disabled]="frozen">
+          Save &amp; Exit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

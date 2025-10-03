@@ -1,4 +1,4 @@
-﻿<!-- Floating header actions -->
+<!-- Floating header actions -->
 <button class="floating-btn left" aria-label="Menu" (click)="toggleMenu()">
   <img src="assets/icons/hamburger.png" alt="Hamburger" />
 </button>
@@ -183,6 +183,7 @@
               (openGridUrlCfgForNode)="onOpenGridUrlCfgForNode($event)"
               (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
               (saleDateChange)="onSaleDateChange($event)"
+              (openFormTemplateText)="onOpenFormTemplateText($event)"
               
             >
             </app-host-node>
@@ -191,7 +192,7 @@
       </ul>
 
       <div class="section-footer-cta">
-        <button type="button" class="btn outline">Preview</button>
+        <button type="button" class="btn outline" (click)="openPreview()">Preview</button>
         <button type="button" class="fab" (click)="addFrontComp()">
           <i class="bi bi-plus-lg"></i>
         </button>
@@ -205,18 +206,35 @@
       </div>
 
       <ul class="list">
-        <li class="item preview-item" *ngFor="let inst of backComponents; let j = index">
-          <div class="preview-content" [ngClass]="inst.comp.tagName">
-            <div class="display_text">{{ inst.comp.name || inst.comp.tagName }}</div>
-          </div>
-
-          <div class="inline-actions">
-            <button type="button" class="icon-btn sm" (click)="moveToFront(j)">
-              <i class="bi bi-box-arrow-in-left"></i>
-            </button>
-            <button type="button" class="icon-btn sm" (click)="removeBackComp(j)">
-              <i class="bi bi-trash"></i>
-            </button>
+        <li class="item preview-item" *ngFor="let inst of backComponents; let j = index; trackBy: trackByInst">
+          <div class="preview-content">
+            <app-host-node
+              [node]="inst"
+              [path]="[backRoot, j]"
+              [siblingsLen]="backComponents.length"
+              [mode]="'back'"
+              [rootDepth]="backRootDepth"
+              (addChild)="onAddChild($event)"
+              (childMoveUp)="onChildMoveUp($event)"
+              (childMoveDown)="onChildMoveDown($event)"
+              (childMoveToBack)="onChildMoveToBack($event)"
+              (moveToFront)="onMoveFromBackToFront($event)"
+              (childRemove)="onChildRemove($event)"
+              (openPickerForNode)="onOpenPickerForNode($event)"
+              (openTextCfgForNode)="onOpenTextCfgForNode($event)"
+              (openBtnCfgForNode)="onOpenBtnCfgForNode($event)"
+              (openGridImageForNode)="onOpenGridImageForNode($event)"
+              (openGridTextCfgForNode)="onOpenGridTextCfgForNode($event)"
+              (openTwoTopicImageForNode)="onOpenTwoTopicImageForNode($event)"
+              (openTwoTopicTextCfgForNode)="onOpenTwoTopicTextCfgForNode($event)"
+              (openTwoTopicBtnCfgForNode)="onOpenTwoTopicBtnCfgForNode($event)"
+              (openTableTextCfgForNode)="onOpenTableTextCfgForNode($event)"
+              (openGridFourImageForNode)="onOpenGridFourImageForNode($event)"
+              (openGridUrlCfgForNode)="onOpenGridUrlCfgForNode($event)"
+              (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
+              (saleDateChange)="onSaleDateChange($event)"
+              (openFormTemplateText)="onOpenFormTemplateText($event)"
+            ></app-host-node>
           </div>
         </li>
       </ul>
@@ -255,13 +273,34 @@
     </button>
     <h3 class="config-modal__title">Banner Text</h3>
     <div class="config-modal__body">
-      <textarea
-        id="bannerTextInput"
-        class="config-modal__textarea"
-        formControlName="display_text"
-        rows="4"
-        placeholder="Text here"
-      ></textarea>
+      <ng-container *ngIf="isPriceTextConfig; else textConfigTextarea">
+        <input
+          id="bannerTextInput"
+          type="text"
+          class="config-modal__input"
+          formControlName="display_text"
+          inputmode="decimal"
+          autocomplete="off"
+          (keydown)="onPriceKeydown($event)"
+          (input)="onPriceInput($event)"
+          placeholder="0"
+        />
+        <div
+          class="config-modal__error"
+          *ngIf="textConfigForm.get('display_text')?.invalid && textConfigForm.get('display_text')?.touched"
+        >
+          ???????????????????????
+        </div>
+      </ng-container>
+      <ng-template #textConfigTextarea>
+        <textarea
+          id="bannerTextInput"
+          class="config-modal__textarea"
+          formControlName="display_text"
+          rows="4"
+          placeholder="Text here"
+        ></textarea>
+      </ng-template>
     </div>
     <div class="config-modal__actions">
       <button type="submit" class="config-modal__primary">Save & Exit</button>
@@ -371,6 +410,23 @@
     </div>
   </form>
 </div>
+<div class="preview-modal" *ngIf="previewOpen">
+  <div class="preview-modal__backdrop" (click)="closePreview()"></div>
+  <div class="preview-modal__panel" role="dialog" aria-modal="true" aria-label="Event preview">
+    <button type="button" class="preview-modal__close" aria-label="Close preview" (click)="closePreview()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="preview-modal__content">
+      <app-event-preview
+        [bannerUrl]="bannerUrl"
+        [eventName]="form.value.name || ''"
+        [endDate]="form.value.endDate || ''"
+        [components]="previewComponents">
+      </app-event-preview>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Component -->
 <div class="modal component-picker-modal" *ngIf="frontPickerOpen">
   <div class="backdrop" (click)="closeFrontPicker()"></div>
@@ -404,6 +460,9 @@
 <div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
   <div class="toast-body">{{ toastMessage }}</div>
   </div>
+
+
+
 
 
 

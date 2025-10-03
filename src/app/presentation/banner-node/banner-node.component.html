@@ -1,6 +1,6 @@
 <div class="banner">
   <ng-content select="[banner-node-header]"></ng-content>
-  <div class="banner__body">
+  <div class="banner__body" [class.banner__body--has-image]="imgSrc">
     <button
       type="button"
       class="banner__image"
@@ -19,37 +19,40 @@
       </ng-template>
     </button>
 
-    <button
-      type="button"
-      class="banner__text"
-      [disabled]="frozen"
-      (click)="onEditText()"
-      aria-label="Edit banner text"
-    >
-      <span [class.banner__text--placeholder]="!displayText">{{ overlayText }}</span>
-    </button>
-
-    <div class="banner__cta-group">
+    <div class="banner__content">
       <button
         type="button"
-        class="banner__cta"
-        [class.banner__cta--inactive]="!buttonActive"
+        class="banner__text"
         [disabled]="frozen"
-        (click)="onEditButton()"
-        aria-label="Edit banner button label"
+        (click)="onEditText()"
+        aria-label="Edit banner text"
       >
-        {{ overlayButton }}
+        <span [class.banner__text--placeholder]="!displayText">{{ overlayText }}</span>
       </button>
 
-      <button
-        type="button"
-        class="banner__gear"
-        [disabled]="frozen"
-        (click)="onEditButton()"
-        aria-label="Configure banner button"
-      >
-        <i class="bi bi-gear-fill" aria-hidden="true"></i>
-      </button>
+      <div class="banner__cta-wrapper">
+        <button
+          type="button"
+          class="banner__gear"
+          [disabled]="frozen"
+          (click)="onEditButton()"
+          aria-label="Configure banner button"
+        >
+          <i class="bi bi-gear-fill" aria-hidden="true"></i>
+        </button>
+
+        <button
+          type="button"
+          class="banner__cta"
+          [class.banner__cta--inactive]="!buttonActive"
+          [disabled]="frozen"
+          (click)="onEditButton()"
+          aria-label="Edit banner button label"
+        >
+          {{ overlayButton }}
+        </button>
+      </div>
     </div>
   </div>
 </div>
+

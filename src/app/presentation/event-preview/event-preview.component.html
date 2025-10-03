@@ -1,0 +1,279 @@
+<div class="event-preview">
+  <div class="event-preview__hero" *ngIf="bannerUrl || displayName || endDateText">
+    <div class="event-preview__banner" *ngIf="bannerUrl">
+      <img [src]="bannerUrl" alt="Event banner" />
+    </div>
+    <div class="event-preview__intro">
+      <h2 class="event-preview__title">{{ displayName }}</h2>
+      <p class="event-preview__date" *ngIf="endDateText">Available until {{ endDateText }}</p>
+    </div>
+  </div>
+
+  <div class="event-preview__empty" *ngIf="!components?.length">
+    <p>No front page components yet. Add blocks to preview them here.</p>
+  </div>
+
+    <div class="event-preview__blocks" *ngIf="components?.length">
+    <ng-container *ngFor="let comp of components; trackBy: trackBySortOrder">
+      <ng-container *ngTemplateOutlet="renderBlock; context: { $implicit: comp }"></ng-container>
+    </ng-container>
+  </div>
+</div>
+
+<ng-template #renderBlock let-comp>
+  <ng-container [ngSwitch]="typeOf(comp)">
+    <section *ngSwitchCase="'banner'" class="preview-block preview-block--banner">
+      <div class="banner-block">
+        <img *ngIf="comp.banner?.image" [src]="comp.banner?.image" alt="Banner image" />
+        <div class="banner-block__content">
+          <p class="banner-block__text" *ngIf="hasContent(comp.banner?.textDesc)">{{ comp.banner?.textDesc }}</p>
+          <a *ngIf="hasContent(comp.banner?.textOnButton) && comp.banner?.isActive"
+             class="banner-block__button" [href]="comp.banner?.urlButton || '#'" target="_blank" rel="noopener">
+            {{ comp.banner?.textOnButton }}
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'textbox'" class="preview-block preview-block--textbox">
+      <p>{{ comp.textBox?.text }}</p>
+    </section>
+
+    <section *ngSwitchCase="'imagewithcaption'" class="preview-block preview-block--image">
+      <div class="image-block">
+        <img *ngIf="comp.imageWithCaption?.image" [src]="comp.imageWithCaption?.image" alt="" />
+        <p *ngIf="hasContent(comp.imageWithCaption?.text)" class="image-block__caption">
+          {{ comp.imageWithCaption?.text }}
+        </p>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'imagedesc'" class="preview-block preview-block--image-desc">
+      <div class="image-desc">
+        <img *ngIf="comp.imageDesc?.image" [src]="comp.imageDesc?.image" alt="" />
+        <p *ngIf="hasContent(comp.imageDesc?.text)" class="image-desc__text">{{ comp.imageDesc?.text }}</p>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'gridtwocolumn'" class="preview-block preview-block--grid-two">
+      <div class="grid-two">
+        <div class="grid-two__col">
+          <img *ngIf="comp.gridTwoColumn?.leftImage" [src]="comp.gridTwoColumn?.leftImage" alt="" />
+          <p *ngIf="hasContent(comp.gridTwoColumn?.leftText)">{{ comp.gridTwoColumn?.leftText }}</p>
+          <a *ngIf="hasContent(comp.gridTwoColumn?.leftUrl)" [href]="comp.gridTwoColumn?.leftUrl" target="_blank" rel="noopener">Learn more</a>
+        </div>
+        <div class="grid-two__col">
+          <img *ngIf="comp.gridTwoColumn?.rightImage" [src]="comp.gridTwoColumn?.rightImage" alt="" />
+          <p *ngIf="hasContent(comp.gridTwoColumn?.rightText)">{{ comp.gridTwoColumn?.rightText }}</p>
+          <a *ngIf="hasContent(comp.gridTwoColumn?.rightUrl)" [href]="comp.gridTwoColumn?.rightUrl" target="_blank" rel="noopener">Learn more</a>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'gridfourimage'" class="preview-block preview-block--grid-four">
+      <div class="grid-four">
+        <img *ngIf="comp.gridFourImage?.image1" [src]="comp.gridFourImage?.image1" alt="" />
+        <img *ngIf="comp.gridFourImage?.image2" [src]="comp.gridFourImage?.image2" alt="" />
+        <img *ngIf="comp.gridFourImage?.image3" [src]="comp.gridFourImage?.image3" alt="" />
+        <img *ngIf="comp.gridFourImage?.image4" [src]="comp.gridFourImage?.image4" alt="" />
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'section'" class="preview-block preview-block--section">
+      <div class="section-block">
+        <div class="section-block__label">
+          {{ comp.children?.length ? 'preview section+component' : 'preview section' }}
+        </div>
+        <ng-container *ngIf="comp.children?.length; else emptySectionBlock">
+          <div class="section-block__children">
+            <ng-container *ngFor="let child of comp.children; trackBy: trackBySortOrder">
+              <ng-container *ngTemplateOutlet="renderBlock; context: { $implicit: child }"></ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+        <ng-template #emptySectionBlock>
+          <div class="section-block__empty"></div>
+        </ng-template>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'tablewithtopicanddesc'" class="preview-block preview-block--table">
+      <h3 *ngIf="hasContent(comp.tableWithTopicAndDesc?.title)">{{ comp.tableWithTopicAndDesc?.title }}</h3>
+      <p *ngIf="hasContent(comp.tableWithTopicAndDesc?.textDesc)">{{ comp.tableWithTopicAndDesc?.textDesc }}</p>
+    </section>
+
+    <section *ngSwitchCase="'onetopicimagecaptionbutton'" class="preview-block preview-block--one-topic">
+      <div class="one-topic">
+        <img *ngIf="comp.oneTopicImageCaptionButton?.image" [src]="comp.oneTopicImageCaptionButton?.image" alt="" />
+        <div class="one-topic__content">
+          <h3 *ngIf="hasContent(comp.oneTopicImageCaptionButton?.title)">{{ comp.oneTopicImageCaptionButton?.title }}</h3>
+          <p *ngIf="hasContent(comp.oneTopicImageCaptionButton?.textDesc)">{{ comp.oneTopicImageCaptionButton?.textDesc }}</p>
+          <a *ngIf="hasContent(comp.oneTopicImageCaptionButton?.textOnButton) && comp.oneTopicImageCaptionButton?.isActive"
+             class="one-topic__button" [href]="comp.oneTopicImageCaptionButton?.url || '#'" target="_blank" rel="noopener">
+            {{ comp.oneTopicImageCaptionButton?.textOnButton }}
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'twotopicimagecaptionbutton'" class="preview-block preview-block--two-topic">
+      <div class="two-topic">
+        <div class="two-topic__col">
+          <img *ngIf="comp.twoTopicImageCaptionButton?.leftImage" [src]="comp.twoTopicImageCaptionButton?.leftImage" alt="" />
+          <div class="two-topic__body">
+            <h3 *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTitle)">{{ comp.twoTopicImageCaptionButton?.leftTitle }}</h3>
+            <p *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTextDesc)">{{ comp.twoTopicImageCaptionButton?.leftTextDesc }}</p>
+            <a *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTextOnButton) && comp.twoTopicImageCaptionButton?.leftIsActive"
+               class="two-topic__button" [href]="comp.twoTopicImageCaptionButton?.leftUrl || '#'" target="_blank" rel="noopener">
+              {{ comp.twoTopicImageCaptionButton?.leftTextOnButton }}
+            </a>
+          </div>
+        </div>
+        <div class="two-topic__col">
+          <img *ngIf="comp.twoTopicImageCaptionButton?.rightImage" [src]="comp.twoTopicImageCaptionButton?.rightImage" alt="" />
+          <div class="two-topic__body">
+            <h3 *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTitle)">{{ comp.twoTopicImageCaptionButton?.rightTitle }}</h3>
+            <p *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTextDesc)">{{ comp.twoTopicImageCaptionButton?.rightTextDesc }}</p>
+            <a *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTextOnButton) && comp.twoTopicImageCaptionButton?.rightIsActive"
+               class="two-topic__button" [href]="comp.twoTopicImageCaptionButton?.rightUrl || '#'" target="_blank" rel="noopener">
+              {{ comp.twoTopicImageCaptionButton?.rightTextOnButton }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'aboutu'" class="preview-block preview-block--about">
+      <div class="about">
+        <div class="about__media" *ngIf="comp.aboutU?.imageTopic">
+          <img [src]="comp.aboutU?.imageTopic" alt="" />
+        </div>
+        <div class="about__content">
+          <h3 *ngIf="hasContent(comp.aboutU?.textTopic)">{{ comp.aboutU?.textTopic }}</h3>
+          <p *ngIf="hasContent(comp.aboutU?.textDesc)">{{ comp.aboutU?.textDesc }}</p>
+          <div class="about__grid">
+            <div class="about__col">
+              <img *ngIf="comp.aboutU?.leftImage" [src]="comp.aboutU?.leftImage" alt="" />
+              <p *ngIf="hasContent(comp.aboutU?.leftText)">{{ comp.aboutU?.leftText }}</p>
+              <a *ngIf="hasContent(comp.aboutU?.leftUrl)" [href]="comp.aboutU?.leftUrl" target="_blank" rel="noopener">Explore</a>
+            </div>
+            <div class="about__col">
+              <img *ngIf="comp.aboutU?.rightImage" [src]="comp.aboutU?.rightImage" alt="" />
+              <p *ngIf="hasContent(comp.aboutU?.rightText)">{{ comp.aboutU?.rightText }}</p>
+              <a *ngIf="hasContent(comp.aboutU?.rightUrl)" [href]="comp.aboutU?.rightUrl" target="_blank" rel="noopener">Explore</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'sale'" class="preview-block preview-block--sale">
+      <div class="sale">
+        <div class="sale__info">
+          <h3 *ngIf="hasContent(comp.sale?.title)">{{ comp.sale?.title }}</h3>
+          <p *ngIf="hasContent(comp.sale?.text)">{{ comp.sale?.text }}</p>
+          <p *ngIf="hasContent(comp.sale?.textDesc)">{{ comp.sale?.textDesc }}</p>
+          <div class="sale__price" *ngIf="comp.sale?.price || comp.sale?.promoPrice">
+            <span *ngIf="comp.sale?.promoPrice" class="sale__promo">{{ formatPrice(comp.sale?.promoPrice) }}</span>
+            <span *ngIf="comp.sale?.price" class="sale__regular">{{ formatPrice(comp.sale?.price) }}</span>
+          </div>
+          <a *ngIf="hasContent(comp.sale?.textOnButton) && comp.sale?.isActive"
+             class="sale__button" [href]="comp.sale?.url || '#'" target="_blank" rel="noopener">
+            {{ comp.sale?.textOnButton }}
+          </a>
+          <p *ngIf="hasContent(comp.sale?.textFooter)" class="sale__footer">{{ comp.sale?.textFooter }}</p>
+        </div>
+        <div class="sale__media">
+          <img *ngIf="comp.sale?.leftImage" [src]="comp.sale?.leftImage" alt="" />
+          <img *ngIf="comp.sale?.rightImage" [src]="comp.sale?.rightImage" alt="" />
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchCase="'button'" class="preview-block preview-block--button">
+      <a *ngIf="hasContent(comp.button?.textOnButton) && comp.button?.isActive"
+         class="preview-button" [href]="comp.button?.url || '#'" target="_blank" rel="noopener">
+        {{ comp.button?.textOnButton }}
+      </a>
+    </section>
+
+        <section *ngSwitchCase="'formtemplate'" class="preview-block preview-block--form">
+      <div class="form-preview">
+        <div class="form-preview__title-row">
+          <span class="form-preview__title">form</span>
+        </div>
+
+        <div class="form-preview__field">
+          <label>URL:</label>
+          <div class="form-preview__input-row">
+            <input type="text" readonly [value]="comp.formTemplate?.url || ''" />
+            <span class="form-preview__icon" aria-hidden="true">
+              <i class="bi bi-clipboard"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-preview__field">
+          <label>Topic:</label>
+          <input type="text" readonly [value]="comp.formTemplate?.topic || 'Text Here'" />
+        </div>
+
+        <div class="form-preview__divider"></div>
+
+        <div class="form-preview__actions">
+          <button type="button" class="form-preview__add" aria-label="Add form component">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+
+        <button type="button" class="form-preview__cta">
+          {{ comp.formTemplate?.textOnButton || 'Text Here' }}
+        </button>
+
+        <div class="form-preview__divider"></div>
+
+        <div class="form-preview__popup">
+          <h4>Popup after submit</h4>
+          <div class="form-preview__popup-card">
+            <div class="form-preview__popup-image">
+              <ng-container *ngIf="comp.formTemplate?.popupImage; else popupPlaceholder">
+                <img [src]="comp.formTemplate?.popupImage" alt="Popup preview" />
+              </ng-container>
+              <ng-template #popupPlaceholder>
+                <div class="form-preview__popup-placeholder">
+                  <img src="assets/icons/upload.png" alt="Upload placeholder" />
+                </div>
+              </ng-template>
+            </div>
+            <input type="text" readonly [value]="comp.formTemplate?.popupText || 'Text Here'" />
+          </div>
+        </div>
+
+        <div class="form-preview__divider"></div>
+
+        <div class="form-preview__field">
+          <label>URL:</label>
+          <div class="form-preview__input-row">
+            <input type="text" readonly [value]="comp.formTemplate?.url || ''" />
+            <span class="form-preview__icon" aria-hidden="true">
+              <i class="bi bi-clipboard"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-preview__footer">
+          <button type="button" class="form-preview__save" aria-label="Save form template">
+            Save &amp; Exit
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section *ngSwitchDefault class="preview-block preview-block--generic">
+      <h4>{{ comp.componentType }}</h4>
+      <p>Preview not available for this component.</p>
+    </section>
+  </ng-container>
+</ng-template>
+
+

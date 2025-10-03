@@ -1,8 +1,11 @@
+import { FormComponentTemplateDto } from './form-component';
+
 export interface EventComponentDto {
   id: number;
   componentType: string;
   sortOrder: number;
   isOutPage: boolean;
+  children?: EventComponentDto[];
 
   aboutU?: AboutUDto;
   banner?: BannerDto;
@@ -51,6 +54,8 @@ export interface FormTemplateDto {
   textOnButton?: string;
   popupImage?: string;
   popupText?: string;
+  url?: string;
+  components: FormComponentTemplateDto[];
 }
 
 export interface GridFourImageDto {
@@ -130,3 +135,5 @@ export interface TwoTopicImageCaptionButtonDto {
   rightIsActive: boolean;
   rightUrl?: string;
 }
+
+

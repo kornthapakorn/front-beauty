@@ -1,19 +1,23 @@
-<div class="node" [class.node--section]="isSection">
+﻿<div class="node" [class.node--section]="isSection">
   <ng-template #nodeHeader>
     <div class="node__header">
       <div class="node__title">{{ title }}</div>
       <div class="node__actions">
-        <button type="button" class="node__action" title="Move down" aria-label="Move down"
+        <button *ngIf="showReorderButtons" type="button" class="node__action" title="Move down" aria-label="Move down"
           [disabled]="frozen || !canMoveDown()" (click)="emitMoveDown()">
           <img src="assets/icons/down-arrow.png" alt="move down" />
         </button>
-        <button type="button" class="node__action" title="Move up" aria-label="Move up"
+        <button *ngIf="showReorderButtons" type="button" class="node__action" title="Move up" aria-label="Move up"
           [disabled]="frozen || !canMoveUp()" (click)="emitMoveUp()">
           <img src="assets/icons/up-arrow.png" alt="move up" />
         </button>
-        <button type="button" class="node__action" title="Move to out page" aria-label="Move to out page"
+        <button *ngIf="showMoveButton" type="button" class="node__action" [title]="moveButtonTitle" [attr.aria-label]="moveButtonAria"
           [disabled]="frozen" (click)="emitMoveToBack()">
-          <img src="assets/icons/kick.png" alt="move to out page" />
+          <img [src]="moveButtonIcon" [alt]="moveButtonTitle" />
+        </button>
+        <button *ngIf="isFormTemplate" type="button" class="node__action" title="Configure form template" aria-label="Configure form template"
+          [disabled]="frozen" (click)="openFormTemplateConfig()">
+          <i class="bi bi-gear-fill"></i>
         </button>
         <button type="button" class="node__action node__action--danger" title="Delete component"
           aria-label="Delete component" [disabled]="frozen" (click)="emitRemove()">
@@ -32,15 +36,16 @@
 
       <div section-node-children class="section-node__children">
         <div class="section-node__child" *ngFor="let child of children; let idx = index; trackBy: trackChild">
-          <app-host-node [node]="child" [path]="append(path, idx)" [siblingsLen]="children.length"
+          <app-host-node [node]="child" [path]="append(path, idx)" [siblingsLen]="children.length" [mode]="mode" [rootDepth]="rootDepth"
             (addChild)="addChild.emit($event)" (childMoveUp)="childMoveUp.emit($event)"
             (childMoveDown)="childMoveDown.emit($event)" (childMoveToBack)="childMoveToBack.emit($event)"
-            (childRemove)="childRemove.emit($event)" (openPickerForNode)="openPickerForNode.emit($event)"
+            (moveToFront)="moveToFront.emit($event)" (childRemove)="childRemove.emit($event)" (openPickerForNode)="openPickerForNode.emit($event)"
             (openTextCfgForNode)="openTextCfgForNode.emit($event)" (openBtnCfgForNode)="openBtnCfgForNode.emit($event)"
             (openGridImageForNode)="openGridImageForNode.emit($event)"
             (openGridTextCfgForNode)="openGridTextCfgForNode.emit($event)"
             (openGridUrlCfgForNode)="openGridUrlCfgForNode.emit($event)"
             (openSaleTextCfgForNode)="openSaleTextCfgForNode.emit($event)"
+            (openFormTemplateText)="openFormTemplateText.emit($event)"
             (saleDateChange)="saleDateChange.emit($event)"></app-host-node>
         </div>
       </div>
@@ -134,6 +139,12 @@
           </ng-container>
         </app-grid-two-column-node>
 
+        <app-form-template-node *ngSwitchCase="'formtemplate'" [node]="node" [path]="path" [frozen]="frozen"
+          (openTextForField)="openFormTemplateText.emit($event)" (openImagePicker)="openPickerForNode.emit($event)">
+          <ng-container node-header>
+            <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
+          </ng-container>
+        </app-form-template-node>
         <app-sale-node *ngSwitchCase="'sale'" [node]="node" [path]="path" [frozen]="frozen"
           (openTextForField)="openSaleTextCfgForNode.emit($event)" (openBtnCfgForNode)="openBtnCfgForNode.emit($event)"
           (openImageForSide)="openGridImageForNode.emit($event)" (openUrlConfig)="openGridUrlCfgForNode.emit($event)"
@@ -154,6 +165,11 @@
     </div>
   </ng-template>
 </div>
+
+
+
+
+
 
 
 

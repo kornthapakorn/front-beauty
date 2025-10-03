@@ -214,3 +214,7 @@
     padding: 18px 18px 28px;
   }
 }
+.node__action i {
+  font-size: 18px;
+  line-height: 1;
+}

@@ -7,6 +7,7 @@ import { EventService } from '../../domain/event.service';
 import { EventCreateDto } from '../../models/event.model';
 import { EventComponentDto } from '../../models/event-component.model';
 import { ComponentDto } from '../../models/component.model';
+import { FormComponentTemplateDto } from '../../models/form-component';
 import { CategoryService } from '../../domain/category.service';
 import { CategoryCreateDto } from '../../models/category.model';
 import { firstValueFrom } from 'rxjs';
@@ -14,9 +15,11 @@ import { firstValueFrom } from 'rxjs';
 // UI components
 import { ComponentListComponent } from '../component-thumb/component-list.component';
 import { HostNodeComponent } from '../host-node/host-node.component';
+import { EventPreviewComponent } from '../event-preview/event-preview.component';
 import { GridFourImageEvent, GridFourImageField } from '../grid-four-image-node/grid-four-image-node.component';
 import { TwoTopicImageCaptionButtonEvent, TwoTopicTextEvent, TwoTopicTextField, TwoTopicSide } from '../two-topic-image-caption-button-node/two-topic-image-caption-button-node.component';
 import { TableTopicDescEvent, TableField } from '../table-topic-desc-node/table-topic-desc-node.component';
+import { FormTemplateTextEvent } from '../form-template-node/form-template-node.component';
 import { SaleTextEvent, SaleDateChangeEvent } from '../sale-node/sale-node.component';
 
 /** ---------- Local helper types ---------- */
@@ -24,8 +27,8 @@ type Category = { id: number; name: string; selected: boolean };
 
 // ?????? event ??? GridTwoColumn node
 type GridImageEvent = { path: number[]; side: 'left' | 'right' };
-type ImageField = 'display_picture' | 'leftImage' | 'rightImage' | GridFourImageField;
-type TextField  = 'display_text' | 'leftText' | 'rightText' | 'title' | 'textDesc' | 'textTopic' | 'leftTitle' | 'rightTitle' | 'leftTextDesc' | 'rightTextDesc' | 'text' | 'promoPrice' | 'price' | 'endDate' | 'textFooter';
+type ImageField = 'display_picture' | 'leftImage' | 'rightImage' | 'popupImage' | GridFourImageField;
+type TextField  = 'display_text' | 'leftText' | 'rightText' | 'title' | 'textDesc' | 'textTopic' | 'topic' | 'leftTitle' | 'rightTitle' | 'leftTextDesc' | 'rightTextDesc' | 'text' | 'promoPrice' | 'price' | 'endDate' | 'textFooter';
 
 export interface ComponentProps {
   display_picture?: { src: string };
@@ -37,6 +40,9 @@ export interface ComponentProps {
   textOnButton?: string;
   popupImage?: string;
   popupText?: string;
+  formSlug?: string;
+  formTemplateId?: number;
+  formComponents?: FormComponentTemplateDto[];
 
   // ? ??????? nested ?????? DTO
   gridTwoColumn?: {
@@ -93,7 +99,7 @@ const clone = <T>(obj: T): T => {
 @Component({
   selector: 'app-create-event',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ComponentListComponent, HostNodeComponent],
+  imports: [CommonModule, ReactiveFormsModule, ComponentListComponent, HostNodeComponent, EventPreviewComponent],
   templateUrl: './event-create.component.html',
   styleUrls: ['./event-create.component.css'],
 })
@@ -137,6 +143,10 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   // component builder state
   frontComponents: CompInstance[] = [];
   backComponents: CompInstance[] = [];
+  readonly backRoot = -1;
+  readonly backRootDepth = 2;
+  previewOpen = false;
+  previewComponents: EventComponentDto[] = [];
 
   pickerTarget: CompInstance | null = null;
   frontPickerOpen = false;
@@ -149,8 +159,11 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   imagePickerTarget: { inst: CompInstance; field: ImageField } | null = null;
   @ViewChild('componentImageInput') componentImageInput?: ElementRef<HTMLInputElement>;
 
+  private readonly textConfigDefaultValidators = [Validators.maxLength(500)];
+  private readonly priceFieldPattern = /^(?:\d+(?:\.\d+)?)?$/;
+
   textConfigForm = this.fb.group({
-    display_text: this.fb.control<string>('', [Validators.maxLength(500)])
+    display_text: this.fb.control<string>('', this.textConfigDefaultValidators)
   });
   buttonConfigForm = this.fb.group({
     label: this.fb.control<string>('', [Validators.maxLength(120)]),
@@ -182,6 +195,12 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   ngOnInit(): void {
     void this.loadCategories();
   }
+
+  toggleMenu(): void {
+    this.drawerOpen = !this.drawerOpen;
+  }
+
+
 
   /** ---------- Category ---------- */
   openCategory() {
@@ -369,6 +388,12 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       el?.click();
       return;
     }
+
+    if (type === 'formtemplate') {
+      this.imagePickerTarget = { inst: target, field: 'popupImage' };
+      this.componentImageInput?.nativeElement?.click();
+      return;
+    }
   }
 
   /** ---------- Grid Two Column (image/text/url) ---------- */
@@ -393,8 +418,8 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     this.buttonConfigTarget = null;
     const field: TextField = ev.side === 'left' ? 'leftText' : 'rightText';
     const current = ((target.props as any)[field] as string | undefined) || 'Text here';
-    this.textConfigForm.reset({ display_text: current });
-    this.textConfigTarget = { inst: target, field };
+    this.configureTextConfigControl('display_text', current);
+    this.textConfigTarget = { inst: target, field: field as TextField };
   }
 
   onOpenTableTextCfgForNode(ev: TableTopicDescEvent): void {
@@ -404,8 +429,8 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     const field: TableField = ev.field;
     const props = (target.props ??= {} as ComponentProps);
     const current = field === 'title' ? this.coerceString(props.title) : this.coerceString(props.textDesc);
-    this.textConfigForm.reset({ display_text: current });
-    this.textConfigTarget = { inst: target, field };
+    this.configureTextConfigControl('display_text', current);
+    this.textConfigTarget = { inst: target, field: field as TextField };
   }
 
   onOpenTwoTopicImageForNode(ev: TwoTopicImageCaptionButtonEvent): void {
@@ -424,7 +449,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     const field = this.resolveTwoTopicTextField(ev.side, ev.field);
     const props = (target.props ?? {}) as ComponentProps;
     const current = typeof (props as any)[field] === 'string' ? ((props as any)[field] as string) : '';
-    this.textConfigForm.reset({ display_text: current });
+    this.configureTextConfigControl('display_text', current);
     this.textConfigTarget = { inst: target, field: field as TextField };
   }
 
@@ -482,6 +507,17 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     this.gridTwoUrlForm.reset({ leftUrl: '', rightUrl: '' });
     this.gridTwoUrlTarget = null;
   }
+  onOpenFormTemplateText(ev: FormTemplateTextEvent): void {
+    const target = this.getNodeAtPath(ev.path);
+    if (!target) return;
+    this.buttonConfigTarget = null;
+    const field = ev.field as TextField;
+    const props = (target.props ??= {} as ComponentProps);
+    const current = this.coerceString((props as any)[field]);
+    this.configureTextConfigControl('display_text', current);
+    this.textConfigTarget = { inst: target, field: field as TextField };
+  }
+
 
   onOpenSaleTextCfgForNode(ev: SaleTextEvent): void {
     const target = this.getNodeAtPath(ev.path);
@@ -497,10 +533,60 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     } else if (typeof raw === 'number') {
       current = String(raw);
     }
-    this.textConfigForm.reset({ display_text: current });
-    this.textConfigTarget = { inst: target, field };
+    this.configureTextConfigControl('display_text', current);
+    this.textConfigTarget = { inst: target, field: field as TextField };
   }
 
+  private isPriceField(field?: TextField | null): field is 'price' | 'promoPrice' {
+    return field === 'price' || field === 'promoPrice';
+  }
+
+  private configureTextConfigControl(field: TextField, value: string): void {
+    const control = this.textConfigForm.get('display_text');
+    if (!control) return;
+    if (this.isPriceField(field)) {
+      control.setValidators([Validators.pattern(this.priceFieldPattern)]);
+    } else {
+      control.setValidators(this.textConfigDefaultValidators);
+    }
+    control.setValue(value);
+    control.markAsPristine();
+    control.markAsUntouched();
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  get isPriceTextConfig(): boolean {
+    const field = this.textConfigTarget?.field;
+    return this.isPriceField(field ?? null);
+  }
+
+  onPriceKeydown(event: KeyboardEvent): void {
+    const allowKeys = new Set(['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End', 'Enter']);
+    if (allowKeys.has(event.key)) return;
+    if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) return;
+    if (!/^[0-9.]$/.test(event.key)) {
+      event.preventDefault();
+      return;
+    }
+    if (event.key === '.' && (event.target as HTMLInputElement).value.includes('.')) {
+      event.preventDefault();
+    }
+  }
+
+  onPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const control = this.textConfigForm.get('display_text');
+    if (!input || !control) return;
+    const sanitized = input.value.replace(/[^0-9.]/g, '');
+    const parts = sanitized.split('.');
+    const normalized = parts.length > 1 ? `${parts[0]}.${parts.slice(1).join('')}` : parts[0];
+    if (normalized !== input.value) {
+      input.value = normalized;
+    }
+    control.setValue(normalized, { emitEvent: false });
+    control.markAsDirty();
+    control.updateValueAndValidity({ emitEvent: false });
+  }
   onSaleDateChange(ev: SaleDateChangeEvent): void {
     const target = this.getNodeAtPath(ev.path);
     if (!target) return;
@@ -513,8 +599,8 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     const target = this.getNodeAtPath(path);
     if (!target) return;
     this.buttonConfigTarget = null;
-    const current = target.props?.display_text ?? '';
-    this.textConfigForm.reset({ display_text: current });
+    const current = this.coerceString(target.props?.display_text);
+    this.configureTextConfigControl('display_text', current);
     this.textConfigTarget = { inst: target, field: 'display_text' };
   }
   onOpenBtnCfgForNode(path: number[]): void {
@@ -545,14 +631,42 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     this.buttonConfigTarget = target;
   }
   closeTextConfig(): void {
-    this.textConfigForm.reset({ display_text: '' });
+    this.configureTextConfigControl('display_text', '');
     this.textConfigTarget = null;
   }
   saveTextConfig(): void {
     if (!this.textConfigTarget) return;
-    const text = (this.textConfigForm.value.display_text ?? '').trim();
+    const control = this.textConfigForm.get('display_text');
+    if (!control) return;
+    const raw = control.value ?? '';
+    const text = typeof raw === 'string' ? raw.trim() : '';
+    if (typeof raw === 'string' && raw !== text) {
+      control.setValue(text, { emitEvent: false });
+    }
+    control.updateValueAndValidity({ emitEvent: false });
+    if (control.invalid) {
+      control.markAsTouched();
+      return;
+    }
+
     const { inst, field } = this.textConfigTarget;
     const props = (inst.props ??= {} as ComponentProps);
+
+    if (this.isPriceField(field)) {
+      if (!text) {
+        delete (props as any)[field];
+      } else {
+        const numeric = Number(text);
+        if (!Number.isFinite(numeric)) {
+          control.setErrors({ number: true });
+          control.markAsTouched();
+          return;
+        }
+        (props as any)[field] = numeric;
+      }
+      this.closeTextConfig();
+      return;
+    }
 
     switch (field) {
       case 'leftText':
@@ -576,6 +690,10 @@ export class CreateEventComponent implements OnDestroy, OnInit {
         (props as any).textTopic = text;
         break;
       }
+      case 'topic': {
+        (props as any)[field] = text;
+        break;
+      }
       case 'leftTitle':
       case 'rightTitle':
       case 'leftTextDesc':
@@ -589,6 +707,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     }
     this.closeTextConfig();
   }
+
   closeButtonConfig(): void {
     this.buttonConfigForm.reset({ label: '', link: '', active: true });
     this.buttonConfigTarget = null;
@@ -688,6 +807,15 @@ export class CreateEventComponent implements OnDestroy, OnInit {
             rightImage: '', rightText: 'Text here', rightUrl: ''
           }
         };
+      case 'formtemplate':
+        return {
+          topic: '',
+          textOnButton: '',
+          popupImage: '',
+          popupText: '',
+          formSlug: '',
+          formComponents: []
+        };
       case 'sale':
         return {
           title: '',
@@ -712,6 +840,39 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     }
   }
 
+  /** ---------- Preview ---------- */
+  openPreview(): void {
+    this.previewComponents = this.buildPreviewTree(this.frontComponents);
+    this.previewOpen = true;
+  }
+
+  closePreview(): void {
+    this.previewOpen = false;
+  }
+
+  private buildPreviewTree(list: CompInstance[] | undefined): EventComponentDto[] {
+    if (!Array.isArray(list) || !list.length) {
+      return [];
+    }
+
+    return list.map((inst, idx) => {
+      const { blocks, componentType } = this.buildComponentBlocks(inst);
+      const dto: EventComponentDto & { children?: EventComponentDto[] } = {
+        id: inst.comp?.componentId ?? 0,
+        componentType,
+        sortOrder: idx + 1,
+        isOutPage: false,
+        ...blocks,
+      };
+
+      const children = inst.props?.children;
+      if (Array.isArray(children) && children.length) {
+        dto.children = this.buildPreviewTree(children);
+      }
+
+      return dto;
+    });
+  }
   /** ---------- Banner upload ---------- */
   onBannerPicked(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -833,6 +994,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   onChildMoveUp(ev: NodeMutationEvent) {
     if (!ev || ev.index < 0) return;
     if (ev.path.length === 0) { this.moveFrontUp(ev.index); return; }
+    if (this.isBackRootPath(ev.path)) { this.moveBackUp(ev.index); return; }
     const parent = this.getNodeAtPath(ev.path);
     if (!parent) return;
     this.childMoveUp(parent, ev.index);
@@ -840,6 +1002,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   onChildMoveDown(ev: NodeMutationEvent) {
     if (!ev || ev.index < 0) return;
     if (ev.path.length === 0) { this.moveFrontDown(ev.index); return; }
+    if (this.isBackRootPath(ev.path)) { this.moveBackDown(ev.index); return; }
     const parent = this.getNodeAtPath(ev.path);
     if (!parent) return;
     this.childMoveDown(parent, ev.index);
@@ -847,13 +1010,20 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   onChildMoveToBack(ev: NodeMutationEvent) {
     if (!ev || ev.index < 0) return;
     if (ev.path.length === 0) { this.moveToBack(ev.index); return; }
+    if (this.isBackRootPath(ev.path)) return;
     const parent = this.getNodeAtPath(ev.path);
     if (!parent) return;
     this.childMoveToBack(parent, ev.index);
   }
+  onMoveFromBackToFront(ev: NodeMutationEvent) {
+    if (!ev || ev.index < 0) return;
+    if (!this.isBackRootPath(ev.path)) return;
+    this.moveToFront(ev.index);
+  }
   onChildRemove(ev: NodeMutationEvent) {
     if (!ev || ev.index < 0) return;
     if (ev.path.length === 0) { this.removeFrontComp(ev.index); return; }
+    if (this.isBackRootPath(ev.path)) { this.removeBackComp(ev.index); return; }
     const parent = this.getNodeAtPath(ev.path);
     if (!parent) return;
     this.childRemove(parent, ev.index);
@@ -864,13 +1034,21 @@ export class CreateEventComponent implements OnDestroy, OnInit {
 
   moveFrontUp(i: number) { if (i > 0) [this.frontComponents[i - 1], this.frontComponents[i]] = [this.frontComponents[i], this.frontComponents[i - 1]]; }
   moveFrontDown(i: number) { if (i < this.frontComponents.length - 1) [this.frontComponents[i + 1], this.frontComponents[i]] = [this.frontComponents[i], this.frontComponents[i + 1]]; }
+  moveBackUp(j: number) { if (j > 0) [this.backComponents[j - 1], this.backComponents[j]] = [this.backComponents[j], this.backComponents[j - 1]]; }
+  moveBackDown(j: number) { if (j < this.backComponents.length - 1) [this.backComponents[j + 1], this.backComponents[j]] = [this.backComponents[j], this.backComponents[j + 1]]; }
   removeFrontComp(i: number) {
     const inst = this.frontComponents[i];
     this.revokeAllObjectUrls(inst);
     this.frontComponents.splice(i, 1);
   }
-  moveToBack(i: number) { const moved = this.frontComponents.splice(i, 1)[0]; this.backComponents.push(moved); }
-  moveToFront(j: number) { const moved = this.backComponents.splice(j, 1)[0]; this.frontComponents.push(moved); }
+  moveToBack(i: number) {
+    const moved = this.frontComponents.splice(i, 1)[0];
+    if (moved) this.backComponents.push(moved);
+  }
+  moveToFront(j: number) {
+    const moved = this.backComponents.splice(j, 1)[0];
+    if (moved) this.frontComponents.unshift(moved);
+  }
   removeBackComp(j: number) {
     const inst = this.backComponents[j];
     this.revokeAllObjectUrls(inst);
@@ -896,11 +1074,25 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   }
 
   /** ---------- Path helpers ---------- */
-  private getNodeAtPath(path: number[]) {
-    let node = this.frontComponents[path[0]];
-    for (let i = 1; i < path.length; i++) {
-      const children = (node.props.children ?? []) as any[];
+  private isBackRootPath(path: number[]): boolean {
+    return Array.isArray(path) && path.length === 1 && path[0] === this.backRoot;
+  }
+
+  private getNodeAtPath(path: number[]): CompInstance | undefined {
+    if (!Array.isArray(path) || path.length === 0) return undefined;
+
+    const isBackList = path[0] === this.backRoot;
+    const startIndex = isBackList ? 1 : 0;
+    const rootIndex = path[startIndex];
+    if (rootIndex === undefined) return undefined;
+
+    let node = (isBackList ? this.backComponents : this.frontComponents)[rootIndex];
+    if (!node) return undefined;
+
+    for (let i = startIndex + 1; i < path.length; i++) {
+      const children = (node.props.children ?? []) as CompInstance[];
       node = children[path[i]];
+      if (!node) break;
     }
     return node;
   }
@@ -971,12 +1163,24 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       };
     }
     if (t === 'formtemplate') {
+      const components = Array.isArray((p as any).formComponents)
+        ? (p as any).formComponents
+            .filter((comp: FormComponentTemplateDto | null | undefined) => !!comp)
+            .map((comp: FormComponentTemplateDto) => ({ ...comp }))
+        : [];
+      const url = this.coerceString((p as any).formSlug);
+      const templateId = (p as any).formTemplateId;
       blocks.formTemplate = {
-        topic: p.topic || '',
-        textOnButton: p.textOnButton || '',
-        popupImage: p.popupImage || '',
-        popupText: p.popupText || ''
+        topic: this.coerceString(p.topic),
+        textOnButton: this.coerceString(p.textOnButton),
+        popupImage: this.coerceString(p.popupImage),
+        popupText: this.coerceString(p.popupText),
+        url,
+        components
       };
+      if (templateId != null) {
+        (blocks.formTemplate as any).formTemplateId = templateId;
+      }
     }
     if (t === 'onetopicimagecaptionbutton') {
       blocks.oneTopicImageCaptionButton = {
@@ -1087,6 +1291,9 @@ export class CreateEventComponent implements OnDestroy, OnInit {
           case 'image4':
             if (blocks.gridFourImage) blocks.gridFourImage.image4 = b64;
             break;
+          case 'popupImage':
+            if (blocks.formTemplate) blocks.formTemplate.popupImage = b64;
+            break;
         }
       }
     }
@@ -1167,9 +1374,9 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     return `${y}-${m}-${d}T23:59:59${offset}`;
   }
 
-  toggleMenu() { this.drawerOpen = !this.drawerOpen; }
-  closeAllMenus() { this.openMenuId = null; }
-  logout() {
+
+
+  logout(): void {
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('auth_token');
     this.router.navigate(['/Login']);
@@ -1204,6 +1411,55 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
