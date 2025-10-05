@@ -18,9 +18,8 @@ type GridTwoColumnData = {
   rightUrl?: string;
 };
 
-type GridTwoColumnProps = GridTwoColumnData & {
+type GridTwoColumnProps = NonNullable<HostNode['props']> & GridTwoColumnData & {
   gridTwoColumn?: GridTwoColumnData | null;
-  [key: string]: unknown;
 };
 
 @Component({
@@ -40,12 +39,18 @@ export class GridTwoColumnNodeComponent {
   @Output() openUrlConfig = new EventEmitter<number[]>();
 
   private get flatProps(): GridTwoColumnProps {
-    return (this.node?.props as GridTwoColumnProps | undefined) ?? {};
+    if (!this.node.props || typeof this.node.props !== 'object') {
+      this.node.props = {};
+    }
+    return this.node.props as GridTwoColumnProps;
   }
 
   private get nestedProps(): GridTwoColumnData {
-    const nested = this.flatProps.gridTwoColumn;
-    return (nested && typeof nested === 'object') ? nested : {};
+    const props = this.flatProps;
+    if (!props.gridTwoColumn || typeof props.gridTwoColumn !== 'object') {
+      props.gridTwoColumn = {};
+    }
+    return props.gridTwoColumn as GridTwoColumnData;
   }
 
   private resolve(field: keyof GridTwoColumnData): string {
