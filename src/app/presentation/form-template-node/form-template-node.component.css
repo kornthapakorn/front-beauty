@@ -1,4 +1,4 @@
-﻿.form-template {
+.form-template {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -223,6 +223,8 @@
   font-weight: 600;
   font-size: 1rem;
   padding: 12px;
+  margin-top: 16px;
+  align-self: stretch;
   cursor: pointer;
 }
 
@@ -257,13 +259,16 @@
 
 .form-template__palette-panel {
   position: relative;
-  width: min(360px, 90vw);
+  width: min(420px, 92vw);
+  max-height: min(88vh, 720px);
   border-radius: 16px;
   background: #ffffff;
   padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .form-template__palette-close {
@@ -282,16 +287,126 @@
 .form-template__palette-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.form-template__palette-list button {
-  border: 1px solid #cbd5f5;
-  border-radius: 10px;
-  padding: 10px 12px;
+.form-template__palette-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-template__palette-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.form-template__palette-card {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
   text-align: left;
-  background: #f8fafc;
+  display: block;
   cursor: pointer;
+}
+
+.form-template__palette-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-template__palette-card:disabled .form-template__palette-card-inner {
+  opacity: 0.75;
+  box-shadow: none;
+  transform: none;
+}
+
+.form-template__palette-card:focus-visible .form-template__palette-card-inner,
+.form-template__palette-card:active .form-template__palette-card-inner {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.22);
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+}
+
+.form-template__palette-card:hover:not(:disabled) .form-template__palette-card-inner {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.16);
+}
+
+.form-template__palette-card:focus-visible .form-template__palette-card-title,
+.form-template__palette-card:active .form-template__palette-card-title {
+  color: #1d4ed8;
+}
+
+.form-template__palette-card:focus-visible .palette-preview,
+.form-template__palette-card:active .palette-preview {
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+.form-template__palette-card-inner {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #ffffff;
+  padding: 18px 20px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Judson', serif;
+}
+
+.form-template__palette-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-template__palette-card-inner--singleSelection .form-template__palette-card-title {
+  display: none;
+}
+
+.form-template__palette-card-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.palette-preview {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 16px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.palette-preview--asset {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  gap: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.palette-preview__asset {
+  display: block;
+  width: min(180px, 100%);
+  max-height: 180px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 12px;
+  object-fit: contain;
 }
 
 /* Single selection modal styles remain as previously defined */
@@ -416,3 +531,5 @@
 .form-template__gear[disabled] {
   opacity: 0.4;
 }
+
+

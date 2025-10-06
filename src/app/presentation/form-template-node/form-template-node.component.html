@@ -58,6 +58,10 @@
           <i class="bi bi-plus-lg"></i>
         </button>
 
+        <button type="button" class="form-template__primary" (click)="openButtonLabel()" [disabled]="frozen">
+          {{ props.textOnButton || 'Text Here' }}
+        </button>
+
         <div class="form-template__divider"></div>
 
         <div class="form-template__popup">
@@ -74,12 +78,6 @@
             <span [class.form-template__placeholder]="!props.popupText">{{ props.popupText || 'Text Here' }}</span>
           </button>
         </div>
-
-        <div class="form-template__divider"></div>
-
-        <button type="button" class="form-template__primary" (click)="openButtonLabel()" [disabled]="frozen">
-          {{ props.textOnButton || 'Text Here' }}
-        </button>
 
         <div class="form-template__divider"></div>
 
@@ -107,13 +105,27 @@
         <i class="bi bi-x-lg"></i>
       </button>
       <div class="form-template__palette-list">
-        <button type="button" *ngFor="let item of palette" (click)="addComponent(item.type)" [disabled]="frozen" [attr.aria-label]="item.label">
-          <span>{{ item.label }}</span>
+        <button
+          type="button"
+          class="form-template__palette-card"
+          *ngFor="let item of palette"
+          [ngClass]="['form-template__palette-card--' + item.type]"
+          (click)="addComponent(item.type)"
+          [disabled]="frozen"
+          [attr.aria-label]="item.label"
+        >
+          <div class="form-template__palette-card-inner" [ngClass]="['form-template__palette-card-inner--' + item.type]">
+            <div class="form-template__palette-card-title">{{ item.label }}</div>
+            <div class="form-template__palette-card-preview">
+              <div class="palette-preview palette-preview--asset">
+                <img class="palette-preview__asset" [src]="item.icon" [alt]="item.label" />
+              </div>
+            </div>
+          </div>
         </button>
       </div>
     </div>
   </div>
-
   <div class="form-template__single-modal" *ngIf="singleSelectionModalOpen">
     <div class="form-template__single-modal-backdrop" (click)="closeSingleSelectionConfig()"></div>
     <div class="form-template__single-modal-panel" role="dialog" aria-modal="true" aria-label="Configure single selection" (click)="$event.stopPropagation()">
@@ -150,3 +162,5 @@
     </div>
   </div>
 </div>
+
+
