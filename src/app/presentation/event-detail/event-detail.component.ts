@@ -26,8 +26,8 @@ export class EventDetailComponent implements OnInit {
       return;
     }
     this.eventService.getById(id).subscribe({
-      next: (ev) => { this.event = ev; this.loading = false; },
-      error: (err) => { this.error = 'Failed to load event'; this.loading = false; console.error(err); }
+      next: (ev: EventDto) => { this.event = ev; this.loading = false; },
+      error: (err: unknown) => { this.error = 'Failed to load event'; this.loading = false; console.error(err); }
     });
   }
 }

@@ -45,18 +45,47 @@
 
         <div class="form-template__divider"></div>
 
-        <div class="form-template__components">
-          <div class="form-template__component" *ngFor="let comp of activeComponents; let i = index; trackBy: trackByComponent">
-            <span>{{ getComponentLabel(comp.componentType) }}</span>
-            <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
-              <i class="bi bi-trash"></i>
+        <div class="form-template__components-header">
+          <div class="form-template__components">
+            <ng-container *ngFor="let comp of activeComponents; let i = index; trackBy: trackByComponent">
+              <ng-container [ngSwitch]="comp.componentType">
+                <ng-container *ngSwitchCase="'singleSelection'"></ng-container>
+                <app-text-field-node
+                  *ngSwitchCase="'textField'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (edit)="openTextField(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-text-field-node>
+                <div *ngSwitchDefault class="form-template__component">
+                  <span>{{ getComponentLabel(comp.componentType) }}</span>
+                  <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+          <div class="form-template__components-actions">
+            <ng-container *ngIf="singleSelectionComponent as singleSelection">
+              <app-single-selection-node
+                class="form-template__single-trigger"
+                [component]="singleSelection"
+                [frozen]="frozen"
+                (remove)="removeSingleSelection()"
+              ></app-single-selection-node>
+            </ng-container>
+            <button
+              type="button"
+              class="form-template__fab"
+              (click)="togglePalette()"
+              [disabled]="frozen"
+              aria-label="Add component"
+            >
+              <i class="bi bi-plus-lg"></i>
             </button>
           </div>
         </div>
-
-        <button type="button" class="form-template__fab" (click)="togglePalette()" [disabled]="frozen" aria-label="Add component">
-          <i class="bi bi-plus-lg"></i>
-        </button>
 
         <button type="button" class="form-template__primary" (click)="openButtonLabel()" [disabled]="frozen">
           {{ props.textOnButton || 'Text Here' }}
@@ -80,7 +109,6 @@
         </div>
 
         <div class="form-template__divider"></div>
-
         <div class="form-template__group">
           <label>URL:</label>
           <div class="form-template__input-wrapper">
@@ -126,41 +154,4 @@
       </div>
     </div>
   </div>
-  <div class="form-template__single-modal" *ngIf="singleSelectionModalOpen">
-    <div class="form-template__single-modal-backdrop" (click)="closeSingleSelectionConfig()"></div>
-    <div class="form-template__single-modal-panel" role="dialog" aria-modal="true" aria-label="Configure single selection" (click)="$event.stopPropagation()">
-      <div class="form-template__single-modal-header">
-        <h3>Single selection</h3>
-        <button type="button" class="form-template__single-close" (click)="closeSingleSelectionConfig()" aria-label="Close single selection modal">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="form-template__single-modal-body">
-        <div class="form-template__single-row" *ngFor="let option of singleSelectionOptions; let idx = index">
-          <input type="text" [(ngModel)]="singleSelectionOptions[idx]" [ngModelOptions]="{ standalone: true, updateOn: 'blur' }" placeholder="Selection name" [disabled]="frozen" />
-          <button type="button" class="form-template__single-row-remove" (click)="requestSingleSelectionRemoval(idx)" [disabled]="frozen" aria-label="Remove selection">
-            <i class="bi bi-trash"></i>
-          </button>
-          <div class="form-template__single-row-confirm" *ngIf="singleSelectionDeleteIndex === idx">
-            <p>Do you want to delete ?</p>
-            <div class="form-template__single-row-confirm-actions">
-              <button type="button" class="form-template__single-confirm-btn" (click)="cancelSingleSelectionRemoval()">Cancel</button>
-              <button type="button" class="form-template__single-confirm-btn form-template__single-confirm-btn--danger" (click)="confirmSingleSelectionRemoval(idx)">Delete</button>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="form-template__single-option-add" (click)="addSingleSelectionOption()" [disabled]="frozen">
-          <i class="bi bi-plus-lg"></i>
-          Add option
-        </button>
-      </div>
-      <div class="form-template__single-modal-footer">
-        <button type="button" class="form-template__single-save" (click)="saveSingleSelectionOptions()" [disabled]="frozen">
-          Save &amp; Exit
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
-
-

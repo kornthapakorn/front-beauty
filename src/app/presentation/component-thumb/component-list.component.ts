@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ComponentThumbComponent, ThumbItem } from './component-thumb.component';
 import { ComponentDto } from '../../models/component.model';
@@ -100,7 +100,7 @@ export class ComponentListComponent {
 
   get displayItems(): ThumbItem[] {
     if (this.allowSection) return this.items;
-    return this.items.filter(it => (it.componentType || '').toLowerCase() !== 'section');
+    return this.items.filter((it: ThumbItem) => (it.componentType || '').toLowerCase() !== 'section');
   }
 
   trackByType = (_: number, item: ThumbItem) => item.componentType;

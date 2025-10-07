@@ -55,7 +55,7 @@ export class EventPreviewComponent {
     if (!Array.isArray(list)) {
       return [];
     }
-    return list.filter((comp): comp is FormComponentTemplateDto => !!comp && comp.isDelete !== true);
+    return list.filter((comp: FormComponentTemplateDto | null | undefined): comp is FormComponentTemplateDto => !!comp && comp.isDelete !== true);
   }
 
   formComponentType(comp: FormComponentTemplateDto | null | undefined): string {

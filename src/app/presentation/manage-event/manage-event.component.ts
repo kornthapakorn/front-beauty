@@ -1,4 +1,4 @@
-﻿import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -57,10 +57,10 @@ export class ManageEventComponent implements OnInit {
   contactSaveError = '';
   contactDeleteIndex: number | null = null;
 
-  readonly contactValidationErrorMessage = 'กรุณากรอกข้อมูลให้ครบถ้วนก่อนบันทึก';
-  readonly contactSaveErrorMessage = 'เกิดข้อผิดพลาดระหว่างบันทึกข้อมูล ลองใหม่อีกครั้ง';
-  readonly contactSaveSuccessMessage = 'บันทึกช่องทางติดต่อเรียบร้อยแล้ว';
-  readonly contactLinkLabel = 'เปิดลิงก์ช่องทางติดต่อ';
+  readonly contactValidationErrorMessage = '???????????????????????????????????';
+  readonly contactSaveErrorMessage = '????????????????????????????????? ???????????????';
+  readonly contactSaveSuccessMessage = '????????????????????????????????';
+  readonly contactLinkLabel = '??????????????????????';
 
   contactTitle = this.fb.control<string>('', [Validators.required, Validators.maxLength(100)]);
   contactPics = new FormArray<ContactPicForm>([]);
@@ -229,7 +229,7 @@ export class ManageEventComponent implements OnInit {
       if (!dto) { throw new Error('no contact dto'); }
       this.contactTitle.setValue(dto.title ?? '');
       this.contactPics.clear();
-      (dto.pictures ?? []).forEach((p) => this.contactPics.push(this.createPicGroup(p)));
+      (dto.pictures ?? []).forEach((p: ContactPictureDto) => this.contactPics.push(this.createPicGroup(p)));
       if (this.contactPics.length === 0) {
         this.contactPics.push(this.createPicGroup());
       }
@@ -322,7 +322,7 @@ export class ManageEventComponent implements OnInit {
       const payload: ContactDto = {
         id: this.CONTACT_ID ?? undefined,
         title: this.contactTitle.value?.trim() ?? '',
-        pictures: this.picControls.map((g) => ({
+        pictures: this.picControls.map((g: ContactPicForm) => ({
           id: g.controls.id.value ?? null,
           imageId: g.controls.imageId.value ?? '',
           url: g.controls.url.value ?? '',
@@ -361,13 +361,13 @@ export class ManageEventComponent implements OnInit {
 
   fetchEvents(): void {
     this.eventService.getAll().subscribe({
-      next: (data) => {
-        this.events = data.map((event) => ({ ...event, isHidden: false }));
+      next: (data: EventDto[]) => {
+        this.events = data.map((event: EventDto) => ({ ...event, isHidden: false }));
         this.filteredEvents = this.events;
       },
       error: () => {
         this.modalType = 'error';
-        this.modalMessage = 'บังจุบันหนึ่งกิจกรรม';
+        this.modalMessage = '????????????????????';
         this.modalOpen = true;
       },
     });
@@ -403,7 +403,7 @@ export class ManageEventComponent implements OnInit {
 
   onSearch(): void {
     const query = (this.search.value ?? '').trim().toLowerCase();
-    this.filteredEvents = query ? this.events.filter((e) => e.name.toLowerCase().includes(query)) : this.events;
+    this.filteredEvents = query ? this.events.filter((e: EventDto & { isHidden?: boolean }) => e.name.toLowerCase().includes(query)) : this.events;
   }
 
   addEvent(): void {
@@ -428,15 +428,15 @@ export class ManageEventComponent implements OnInit {
 
   duplicateEvent(eventDto: EventDto): void {
     this.eventService.duplicate(eventDto.id).subscribe({
-      next: (copy) => {
+      next: (copy: EventDto) => {
         this.events = [...this.events, { ...copy, isHidden: false }];
         this.onSearch();
         this.openMenuId = null;
-        this.showModal('คัดลอกกิจกรรมเรียบร้อยแล้ว');
+        this.showModal('??????????????????????????');
       },
       error: () => {
         this.openMenuId = null;
-        this.showModal('ไม่สามารถคัดลอกกิจกรรมได้');
+        this.showModal('?????????????????????????');
       },
     });
   }
@@ -467,14 +467,14 @@ export class ManageEventComponent implements OnInit {
 
     this.eventService.delete(target.id).subscribe({
       next: () => {
-        this.events = this.events.filter((event) => event.id !== target.id);
+        this.events = this.events.filter((event: EventDto & { isHidden?: boolean }) => event.id !== target.id);
         this.onSearch();
         this.deleteConfirm = { open: false, target: null };
-        this.showModal('ลบกิจกรรมเรียบร้อยแล้ว');
+        this.showModal('??????????????????????');
       },
       error: () => {
         this.deleteConfirm = { open: false, target: null };
-        this.showModal('ไม่สามารถลบกิจกรรมได้');
+        this.showModal('?????????????????????');
       },
     });
   }
@@ -489,6 +489,7 @@ export class ManageEventComponent implements OnInit {
     this.router.navigate(['/Login']);
   }
 }
+
 
 
 

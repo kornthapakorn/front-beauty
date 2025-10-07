@@ -1,0 +1,25 @@
+<div class="text-field-node" [class.text-field-node--disabled]="frozen">
+  <div class="text-field-node__header">
+    <span>Selection name:</span>
+    <button
+      type="button"
+      class="text-field-node__remove"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove text field"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="text-field-node__body"
+    (click)="onEdit($event)"
+    [disabled]="frozen"
+  >
+    <span [class.text-field-node__placeholder]="isPlaceholder">
+      {{ displayText || 'Text Here' }}
+    </span>
+  </button>
+</div>

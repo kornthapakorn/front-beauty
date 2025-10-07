@@ -13,8 +13,10 @@ import {
   createDefaultFormComponent
 } from '../../models/form-component';
 import { slugify } from '../../shared/slug.util';
+import { SingleSelectionNodeComponent } from '../single-selection-node/single-selection-node.component';
+import { TextFieldNodeComponent } from '../text-field-node/text-field-node.component';
 
-export type FormTemplateField = 'topic' | 'popupText' | 'textOnButton';
+export type FormTemplateField = 'topic' | 'popupText' | 'textOnButton' | 'componentText';
 
 export interface FormTemplateTextEvent {
   path: number[];
@@ -34,7 +36,7 @@ type FormTemplateProps = {
 @Component({
   selector: 'app-form-template-node',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SingleSelectionNodeComponent, TextFieldNodeComponent],
   templateUrl: './form-template-node.component.html',
   styleUrls: ['./form-template-node.component.css']
 })
@@ -53,11 +55,6 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   loadingComponents = false;
   loadError = '';
   copied = false;
-
-  singleSelectionModalOpen = false;
-  singleSelectionTarget: FormComponentTemplateDto | null = null;
-  singleSelectionOptions: string[] = [];
-  singleSelectionDeleteIndex: number | null = null;
 
   onRootCardActivate(event: Event): void {
     event?.preventDefault();
@@ -114,11 +111,11 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get activeComponents(): FormComponentTemplateDto[] {
-    return this.props.formComponents!.filter(c => !c.isDelete);
+    return this.props.formComponents!.filter((c: FormComponentTemplateDto) => !c.isDelete);
   }
 
   get singleSelectionComponent(): FormComponentTemplateDto | undefined {
-    return this.activeComponents.find(comp => comp.componentType === "singleSelection");
+    return this.activeComponents.find((comp: FormComponentTemplateDto) => comp.componentType === 'singleSelection');
   }
 
   openConfig(event?: Event): void {
@@ -135,11 +132,6 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   closeConfig(): void {
     this.configOpen = false;
     this.componentsMenuOpen = false;
-    this.copied = false;
-    if (this.copyResetHandle) {
-      clearTimeout(this.copyResetHandle);
-      this.copyResetHandle = null;
-    }
   }
 
   togglePalette(): void {
@@ -161,13 +153,23 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     const list = this.activeComponents;
     const target = list[index];
     if (!target) return;
-    const original = this.props.formComponents!.find(c => c.id === target.id);
+    const original = this.props.formComponents!.find((c: FormComponentTemplateDto) => c.id === target.id);
     if (!original) return;
     if (original.id > 0) {
       original.isDelete = true;
     } else {
       const idx = this.props.formComponents!.indexOf(original);
       if (idx >= 0) this.props.formComponents!.splice(idx, 1);
+    }
+  }
+
+  removeSingleSelection(): void {
+    if (!this.singleSelectionComponent) {
+      return;
+    }
+    const index = this.activeComponents.findIndex((comp: FormComponentTemplateDto) => comp.id === this.singleSelectionComponent!.id);
+    if (index >= 0) {
+      this.removeComponent(index);
     }
   }
 
@@ -219,25 +221,25 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   trackByComponent = (_: number, item: FormComponentTemplateDto) => item.id;
 
   getComponentLabel(type: FormComponentType): string {
-    return this.palette.find(item => item.type === type)?.label ?? type;
+    return this.palette.find((item: FormComponentPaletteItem) => item.type === type)?.label ?? type;
   }
 
   getComponentIcon(type: FormComponentType): string {
-    return this.palette.find(item => item.type === type)?.icon ?? this.iconSrc;
+    return this.palette.find((item: FormComponentPaletteItem) => item.type === type)?.icon ?? this.iconSrc;
   }
 
-  onChipRemove(comp: FormComponentTemplateDto, ev?: Event): void {
-    if (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
+  openTextField(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
     }
-    const idx = this.activeComponents.findIndex(item => item.id === comp.id);
-    if (idx >= 0) {
-      this.removeComponent(idx);
-    }
+    if (this.frozen) return;
+    this.ensureTextField(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText'
+    });
   }
-
-  trackOption = (_: number, item: string) => item;
 
   ensureTextField(comp: FormComponentTemplateDto): boolean {
     comp.textField ??= { text: '' };
@@ -247,69 +249,6 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   ensureDateField(comp: FormComponentTemplateDto): boolean {
     comp.date ??= { text: '' };
     return true;
-  }
-
-
-  openPrimarySingleSelection(): void {
-    if (this.frozen) return;
-    const comp = this.singleSelectionComponent;
-    if (comp) {
-      this.openSingleSelectionConfig(comp);
-    }
-  }
-
-  openSingleSelectionConfig(comp: FormComponentTemplateDto): void {
-    if (this.frozen) return;
-    this.singleSelectionTarget = comp;
-    const options = comp.singleSelection?.options;
-    if (Array.isArray(options) && options.length) {
-      this.singleSelectionOptions = options.map(opt => opt ?? '');
-    } else if (comp.singleSelection?.value) {
-      this.singleSelectionOptions = [comp.singleSelection.value];
-    } else {
-      this.singleSelectionOptions = [''];
-    }
-    this.singleSelectionDeleteIndex = null;
-    this.singleSelectionModalOpen = true;
-  }
-
-  addSingleSelectionOption(): void {
-    this.singleSelectionOptions.push('');
-    this.singleSelectionDeleteIndex = null;
-  }
-
-  requestSingleSelectionRemoval(index: number): void {
-    this.singleSelectionDeleteIndex = index;
-  }
-
-  cancelSingleSelectionRemoval(): void {
-    this.singleSelectionDeleteIndex = null;
-  }
-
-  confirmSingleSelectionRemoval(index: number): void {
-    this.singleSelectionOptions.splice(index, 1);
-    this.singleSelectionDeleteIndex = null;
-    if (!this.singleSelectionOptions.length) {
-      this.singleSelectionOptions.push('');
-    }
-  }
-
-  saveSingleSelectionOptions(): void {
-    if (!this.singleSelectionTarget) return;
-    const options = this.singleSelectionOptions
-      .map(option => option.trim())
-      .filter(option => option.length > 0);
-    this.singleSelectionTarget.singleSelection ??= {};
-    this.singleSelectionTarget.singleSelection.options = options;
-    this.singleSelectionTarget.singleSelection.value = options[0] ?? '';
-    this.closeSingleSelectionConfig();
-  }
-
-  closeSingleSelectionConfig(): void {
-    this.singleSelectionModalOpen = false;
-    this.singleSelectionTarget = null;
-    this.singleSelectionOptions = [];
-    this.singleSelectionDeleteIndex = null;
   }
 
   private ensureProps(): void {
@@ -334,26 +273,17 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
       .getTemplate(props.formTemplateId)
       .pipe(take(1))
       .subscribe({
-        next: comps => {
-          props.formComponents = comps?.map(c => ({ ...c })) ?? [];
+        next: (comps: FormComponentTemplateDto[] | null | undefined) => {
+          props.formComponents = comps?.map((c: FormComponentTemplateDto) => ({ ...c })) ?? [];
           this.loadingComponents = false;
           this.loadError = '';
         },
-        error: err => {
+        error: (err: unknown) => {
           this.loadingComponents = false;
-          this.loadError = err?.error ?? 'Unable to load form components';
+          this.loadError = (typeof err === 'object' && err && 'error' in err) ? (err as any).error : String(err) || 'Unable to load form components';
         }
       });
   }
 }
-
-
-
-
-
-
-
-
-
 
 

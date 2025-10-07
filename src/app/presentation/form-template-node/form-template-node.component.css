@@ -533,3 +533,15 @@
 }
 
 
+
+
+.form-template__components-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.form-template__single-trigger {
+  flex: 1;
+}

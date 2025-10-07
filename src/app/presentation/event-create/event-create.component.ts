@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { ComponentDto } from '../../models/component.model';
 import { FormComponentTemplateDto } from '../../models/form-component';
 import { CategoryService } from '../../domain/category.service';
 import { CategoryCreateDto } from '../../models/category.model';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 // UI components
 import { ComponentListComponent } from '../component-thumb/component-list.component';
@@ -89,6 +89,11 @@ type CompInstance = {
 };
 
 type NodeMutationEvent = { path: number[]; index: number };
+
+type EventDraft = {
+  form?: { endDate?: string; name?: string; isFav?: boolean };
+  selectedCategoryIds?: number[];
+};
 
 const clone = <T>(obj: T): T => {
   const anyWin = window as any;
@@ -182,6 +187,13 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   openMenuId: number | null = null;
   todayStr = this.toYMD(new Date());
 
+  private readonly draftStorageKey = 'create-event-draft';
+  private formChangesSub?: Subscription;
+  private restoringDraft = false;
+  private pendingCategoryIds: number[] = [];
+  private draftSaveHandle: ReturnType<typeof setTimeout> | null = null;
+  private skipNextPersist = false;
+
   private uidSeq = 1;
   private nextUid() { return 'inst_' + (this.uidSeq++); }
 
@@ -193,6 +205,10 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.formChangesSub = this.form.valueChanges.subscribe(() => {
+      if (!this.restoringDraft) this.scheduleDraftSave();
+    });
+    this.restoreDraft();
     void this.loadCategories();
   }
 
@@ -224,6 +240,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     this.categories = this.categories.map(c =>
       c.id === cat.id ? { ...c, selected: next } : c
     );
+    this.markStateChanged();
   }
   requestDeleteCategory(cat: Category) {
     this.categoryDeleteError = '';
@@ -248,6 +265,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       await firstValueFrom(this.categoriesApi.delete(this.categoryToDelete.id));
       this.categories = this.categories.filter(cat => cat.id !== this.categoryToDelete!.id);
       this.categoryToDelete = null;
+      this.markStateChanged();
     } catch (error) {
       this.categoryDeleteError = this.resolveCategoryError(error, 'Unable to delete category.');
     } finally {
@@ -292,6 +310,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       this.categoryForm.reset({ name: '' });
       this.categoryForm.markAsPristine();
       this.categoryForm.markAsUntouched();
+      this.markStateChanged();
     } catch (error) {
       this.categorySubmitError = this.resolveCategoryError(error, 'Unable to create category.');
     } finally {
@@ -320,6 +339,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       mapped.sort((a, b) => a.name.localeCompare(b.name));
       this.categories = mapped;
       this.categoriesLoaded = true;
+      this.applyPendingCategorySelection();
     } catch (error) {
       this.categoryError = this.resolveCategoryError(error, 'Unable to load categories.');
     } finally {
@@ -1314,9 +1334,11 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     const endDate = this.form.value.endDate || '';
     const isFav = !!this.form.value.isFav;
 
-    if (!endDate) this.errors.endDate = '???????????????????????';
-    else if (endDate < this.todayStr) this.errors.endDate = '????????????????????????????';
-    if (!name) this.errors.eventName = '????????????????????';
+    const requiredMessage = 'Please Complete all required fields';
+
+    if (!endDate) this.errors.endDate = requiredMessage;
+    else if (endDate < this.todayStr) this.errors.endDate = 'End date cannot be in the past.';
+    if (!name) this.errors.eventName = requiredMessage;
 
     if (this.errors.endDate || this.errors.eventName) {
       setTimeout(() => document.querySelector('.field.invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
@@ -1342,9 +1364,10 @@ export class CreateEventComponent implements OnDestroy, OnInit {
     this.events.create(dtoJson).subscribe({
       next: () => {
         this.submitting = false;
+        this.clearDraft();
         this.showToast('Created event successfully');
       },
-      error: (err) => { this.submitting = false; alert(err?.error ?? 'Create failed'); }
+      error: (err: unknown) => { this.submitting = false; const message = (err as { error?: string })?.error ?? 'Create failed'; alert(message); }
     });
   }
 
@@ -1375,11 +1398,99 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   }
 
 
+  private scheduleDraftSave(): void {
+    if (this.restoringDraft) return;
+    if (this.draftSaveHandle) {
+      clearTimeout(this.draftSaveHandle);
+    }
+    this.draftSaveHandle = setTimeout(() => {
+      this.draftSaveHandle = null;
+      this.persistDraft();
+    }, 200);
+  }
 
+  private markStateChanged(): void {
+    if (this.restoringDraft) return;
+    this.pendingCategoryIds = this.categories.filter(c => c.selected).map(c => c.id);
+    this.scheduleDraftSave();
+  }
+
+  private persistDraft(): void {
+    if (this.restoringDraft) return;
+    if (this.skipNextPersist) {
+      this.skipNextPersist = false;
+      return;
+    }
+    const raw = this.form.getRawValue();
+    const draft: EventDraft = {
+      form: {
+        endDate: raw.endDate ?? '',
+        name: raw.name ?? '',
+        isFav: !!raw.isFav
+      },
+      selectedCategoryIds: this.categories.filter(c => c.selected).map(c => c.id)
+    };
+    try {
+      localStorage.setItem(this.draftStorageKey, JSON.stringify(draft));
+    } catch (error) {
+      console.warn('Unable to persist draft', error);
+    }
+  }
+
+  private restoreDraft(): void {
+    const stored = localStorage.getItem(this.draftStorageKey);
+    if (!stored) return;
+    try {
+      const draft = JSON.parse(stored) as EventDraft;
+      this.restoringDraft = true;
+      if (draft.form) {
+        this.form.reset({
+          endDate: draft.form.endDate ?? '',
+          name: draft.form.name ?? '',
+          isFav: !!draft.form.isFav
+        });
+        this.form.markAsPristine();
+      }
+      this.pendingCategoryIds = Array.isArray(draft.selectedCategoryIds) ? draft.selectedCategoryIds : [];
+      this.applyPendingCategorySelection();
+    } catch (error) {
+      console.error('Failed to restore draft', error);
+      this.clearDraft();
+    } finally {
+      this.restoringDraft = false;
+    }
+  }
+
+  private applyPendingCategorySelection(): void {
+    if (!this.categories.length) return;
+    if (!this.pendingCategoryIds.length) return;
+    const set = new Set(this.pendingCategoryIds);
+    this.categories = this.categories.map(cat => ({ ...cat, selected: set.has(cat.id) }));
+    this.pendingCategoryIds = this.categories.filter(c => c.selected).map(c => c.id);
+  }
+
+  private clearDraft(): void {
+    localStorage.removeItem(this.draftStorageKey);
+    this.pendingCategoryIds = [];
+    this.skipNextPersist = true;
+  }
+
+  private flushDraftSave(): void {
+    if (this.draftSaveHandle) {
+      clearTimeout(this.draftSaveHandle);
+      this.draftSaveHandle = null;
+    }
+    this.persistDraft();
+  }
   logout(): void {
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('auth_token');
     this.router.navigate(['/Login']);
+  }
+
+  @HostListener('window:beforeunload')
+  handleBeforeUnload(): void {
+    this.flushDraftSave();
   }
 
   // success modal helpers
@@ -1405,12 +1516,32 @@ export class CreateEventComponent implements OnDestroy, OnInit {
 
   // cleanup
   ngOnDestroy(): void {
+    this.formChangesSub?.unsubscribe();
+    this.flushDraftSave();
     [this.frontComponents, this.backComponents].forEach(list => {
       list.forEach(inst => this.revokeAllObjectUrls(inst));
     });
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

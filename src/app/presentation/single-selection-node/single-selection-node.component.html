@@ -1,0 +1,96 @@
+<div class="single-selection-node" [class.single-selection-node--disabled]="frozen">
+  <div class="single-selection-node__chips">
+    <span
+      class="single-selection-node__chip"
+      *ngFor="let chip of chipOptions; let idx = index; trackBy: trackOption"
+      [class.single-selection-node__chip--blank]="chip.isEmpty"
+    >
+      {{ chip.label }}
+    </span>
+  </div>
+  <div class="single-selection-node__actions">
+    <button
+      type="button"
+      class="single-selection-node__gear"
+      (click)="openConfig($event)"
+      [disabled]="frozen"
+      aria-label="Configure single selection options"
+    >
+      <img src="assets/icons/gear.png" alt="Configure single selection" />
+    </button>
+  </div>
+</div>
+
+<div class="single-selection-node__modal" *ngIf="modalOpen">
+  <div class="single-selection-node__modal-backdrop" (click)="closeConfig($event)"></div>
+  <div
+    class="single-selection-node__modal-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Configure single selection"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="single-selection-node__modal-header">
+      <h3>Single selection</h3>
+      <button
+        type="button"
+        class="single-selection-node__close"
+        (click)="closeConfig($event)"
+        aria-label="Close single selection modal"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="single-selection-node__modal-body">
+      <div class="single-selection-node__row" *ngFor="let option of workingOptions; let idx = index; trackBy: trackOption">
+        <input
+          type="text"
+          [(ngModel)]="workingOptions[idx]"
+          [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+          placeholder="Selection name"
+          [disabled]="frozen"
+        />
+        <button
+          type="button"
+          class="single-selection-node__row-remove"
+          (click)="requestRemoval(idx, $event)"
+          [disabled]="frozen"
+          aria-label="Remove single selection option"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+        <div class="single-selection-node__row-confirm" *ngIf="pendingDeleteIndex === idx">
+          <p>Do you want to delete ?</p>
+          <div class="single-selection-node__row-actions">
+            <button type="button" class="single-selection-node__confirm-btn" (click)="cancelRemoval($event)">Cancel</button>
+            <button
+              type="button"
+              class="single-selection-node__confirm-btn single-selection-node__confirm-btn--danger"
+              (click)="confirmRemoval(idx, $event)"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="single-selection-node__option-add" (click)="addOption($event)" [disabled]="frozen">
+        <i class="bi bi-plus-lg"></i>
+        Add option
+      </button>
+    </div>
+    <div class="single-selection-node__modal-footer">
+      <button
+        type="button"
+        class="single-selection-node__remove-component"
+        (click)="removeComponent($event)"
+        [disabled]="frozen"
+      >
+        Remove component
+      </button>
+      <button type="button" class="single-selection-node__save" (click)="save($event)" [disabled]="frozen">
+        Save & Exit
+      </button>
+    </div>
+  </div>
+</div>
+

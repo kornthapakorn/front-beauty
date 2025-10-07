@@ -11,7 +11,7 @@
       <input id="password" [type]="showPassword ? 'text' : 'password'" class="input" formControlName="password"
              [class.invalid]="isInvalid('password')" autocomplete="current-password" />
 
-      <div *ngIf="authError" class="error-row">
+      <div *ngIf="showAuthError" class="error-row">
         <span class="error-icon">!</span>
         <span class="error-text">Username or Password is Incorrect</span>
       </div>
@@ -25,3 +25,4 @@
     </form>
   </div>
 </div>
+

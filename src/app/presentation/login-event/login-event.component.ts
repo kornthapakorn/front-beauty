@@ -18,6 +18,10 @@ export class LoginEventComponent {
   authError = false;
   submitted = false;
 
+  get showAuthError(): boolean {
+    return this.authError || (this.submitted && this.form.invalid);
+  }
+
   form = this.fb.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required]],
@@ -75,7 +79,7 @@ export class LoginEventComponent {
             this.authError = true;
           }
         },
-        error: (err) => {
+        error: (err: unknown) => {
           console.error('Login error:', err);
           this.authError = true;
           this.loading = false;
@@ -84,3 +88,4 @@ export class LoginEventComponent {
 
   }
 }
+
