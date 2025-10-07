@@ -94,24 +94,40 @@
           </button>
         </div>
         <div class="panel-body category-body">
-          <form class="category-form" [formGroup]="categoryForm" (ngSubmit)="createCategory()">
-            <label class="label">Category name:</label>
-            <div class="category-input-row">
-              <input type="text" class="input" formControlName="name" placeholder="Text here" />
-              <button type="submit" class="fab sm" [disabled]="categorySaving">
-                <i *ngIf="!categorySaving" class="bi bi-plus-lg"></i>
-                <span *ngIf="categorySaving" class="loading-dots">...</span>
+
+          <!-- ==== START: Category form (modified) ==== -->
+          <div class="category-form" [formGroup]="categoryForm">
+            <div class="row" style="justify-content: space-between; align-items: center;">
+              <label class="label">Categories</label>
+              <button type="button" class="fab sm" (click)="showCategoryInput = !showCategoryInput" [disabled]="categorySaving">
+                <i class="bi" [ngClass]="showCategoryInput ? 'bi-dash-lg' : 'bi-plus-lg'"></i>
               </button>
             </div>
-            <div class="category-error" *ngIf="categoryForm.get('name')?.touched && categoryForm.get('name')?.hasError('required')">
+
+            <!-- แสดงช่องกรอกเมื่อกด + เท่านั้น -->
+            <div *ngIf="showCategoryInput" class="category-input-row" style="margin-top: 8px;">
+              <input
+                type="text"
+                class="input"
+                formControlName="name"
+                placeholder="Type new category"
+                maxlength="100"
+              />
+            </div>
+
+            <!-- errors -->
+            <div class="category-error"
+                 *ngIf="categoryForm.get('name')?.touched && categoryForm.get('name')?.hasError('required')">
               Category name is required.
             </div>
             <div class="category-error" *ngIf="categoryForm.get('name')?.hasError('maxlength')">
               Maximum 100 characters.
             </div>
             <div class="category-error" *ngIf="categorySubmitError">{{ categorySubmitError }}</div>
-          </form>
+          </div>
+          <!-- ==== END: Category form (modified) ==== -->
 
+          <!-- รายการหมวดหมู่ -->
           <div class="category-list" *ngIf="!categoryLoading; else categoryLoadingTpl">
             <div class="category-item" *ngFor="let cat of categories">
               <button type="button" class="chip toggle"
@@ -132,8 +148,10 @@
             <div class="category-feedback">Loading categories...</div>
           </ng-template>
         </div>
+
+        <!-- Footer: Save & Exit จะสร้างถ้ามีการพิมพ์ (showCategoryInput && name ไม่ว่าง) -->
         <div class="panel-footer">
-          <button type="button" class="btn primary" (click)="closeCategory()">Save &amp; Exit</button>
+          <button type="button" class="btn primary" (click)="createCategory()">Save &amp; Exit</button>
         </div>
       </div>
     </div>
@@ -184,7 +202,6 @@
               (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
               (saleDateChange)="onSaleDateChange($event)"
               (openFormTemplateText)="onOpenFormTemplateText($event)"
-              
             >
             </app-host-node>
           </div>
@@ -246,8 +263,7 @@
       </div>
     </div>
 
-        <!-- Banner inline edit -->
-<!-- Save -->
+    <!-- Save -->
     <div class="actions">
       <button type="submit" class="btn primary" [disabled]="submitting">
         {{ submitting ? 'Saving???' : 'Save & Exit' }}
@@ -307,6 +323,7 @@
     </div>
   </form>
 </div>
+
 <!-- Modal: Grid Two Column URLs -->
 <div class="config-modal" *ngIf="gridTwoUrlTarget">
   <div class="config-modal__backdrop" (click)="closeGridTwoUrlConfig()"></div>
@@ -410,6 +427,8 @@
     </div>
   </form>
 </div>
+
+<!-- Preview modal -->
 <div class="preview-modal" *ngIf="previewOpen">
   <div class="preview-modal__backdrop" (click)="closePreview()"></div>
   <div class="preview-modal__panel" role="dialog" aria-modal="true" aria-label="Event preview">
@@ -432,7 +451,6 @@
   <div class="backdrop" (click)="closeFrontPicker()"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-label="Component picker">
     <div class="panel-header">
-
       <button type="button" class="icon-btn close-btn" aria-label="Close component picker" (click)="closeFrontPicker()">
         <i class="bi bi-x-lg"></i>
       </button>
@@ -459,20 +477,4 @@
 <!-- Toast popup -->
 <div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
   <div class="toast-body">{{ toastMessage }}</div>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</div>

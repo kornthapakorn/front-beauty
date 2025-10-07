@@ -109,6 +109,7 @@ const clone = <T>(obj: T): T => {
   styleUrls: ['./event-create.component.css'],
 })
 export class CreateEventComponent implements OnDestroy, OnInit {
+  showCategoryInput = false;
   /** ---------- Form & UI state ---------- */
   form = this.fb.group({
     endDate: ['', Validators.required],
@@ -219,22 +220,38 @@ export class CreateEventComponent implements OnDestroy, OnInit {
 
 
   /** ---------- Category ---------- */
-  openCategory() {
-    this.categoryModalOpen = true;
-    if (!this.categoriesLoaded && !this.categoryLoading) {
-      void this.loadCategories();
-    }
+openCategory() {
+  this.categoryModalOpen = true;
+  this.categorySubmitError = '';
+  this.categoryToDelete = null;
+  this.categoryDeleteError = '';
+  this.categoryDeleteLoading = false;
+
+  // ซ่อนช่องกรอกตอนเปิด (ยังไม่โชว์จนกว่าจะกด +)
+  this.showCategoryInput = false;
+  this.categoryForm.reset({ name: '' });
+  this.categoryForm.markAsPristine();
+  this.categoryForm.markAsUntouched();
+
+  if (!this.categoriesLoaded && !this.categoryLoading) {
+    void this.loadCategories();
   }
-  closeCategory() {
-    this.categoryModalOpen = false;
-    this.categorySubmitError = '';
-    this.categoryToDelete = null;
-    this.categoryDeleteError = '';
-    this.categoryDeleteLoading = false;
-    this.categoryForm.reset({ name: '' });
-    this.categoryForm.markAsPristine();
-    this.categoryForm.markAsUntouched();
-  }
+}
+
+closeCategory() {
+  this.categoryModalOpen = false;
+  this.categorySubmitError = '';
+  this.categoryToDelete = null;
+  this.categoryDeleteError = '';
+  this.categoryDeleteLoading = false;
+
+  // reset & ซ่อน input เสมอ
+  this.categoryForm.reset({ name: '' });
+  this.categoryForm.markAsPristine();
+  this.categoryForm.markAsUntouched();
+  this.showCategoryInput = false;
+}
+
   toggleCategory(cat: Category) {
     const next = !cat.selected;
     this.categories = this.categories.map(c =>
@@ -272,51 +289,52 @@ export class CreateEventComponent implements OnDestroy, OnInit {
       this.categoryDeleteLoading = false;
     }
   }
-  async createCategory() {
-    this.categorySubmitError = '';
-    this.categoryForm.markAllAsTouched();
-    const nameCtrl = this.categoryForm.get('name');
-    const rawName = nameCtrl?.value ?? '';
-    const name = typeof rawName === 'string' ? rawName.trim() : '';
+async createCategory() {
+  this.categorySubmitError = '';
 
-    if (!name) {
-      nameCtrl?.setValue('');
-      nameCtrl?.setErrors({ required: true });
-      return;
-    }
-    if (this.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-      this.categorySubmitError = 'Category already exists.';
-      return;
-    }
-    if (this.categorySaving) return;
-    this.categorySaving = true;
+  const nameCtrl = this.categoryForm.get('name');
+  const rawName = nameCtrl?.value ?? '';
+  const name = typeof rawName === 'string' ? rawName.trim() : '';
 
-    try {
-      const dto = await firstValueFrom(this.categoriesApi.create({ name } as CategoryCreateDto));
-      if (!dto || typeof dto.id !== 'number') {
-        throw new Error('Invalid category response');
-      }
-      const newCat: Category = { id: dto.id, name: dto.name, selected: true };
-      const idx = this.categories.findIndex(cat => cat.id === newCat.id);
-      let nextList: Category[];
-      if (idx >= 0) {
-        nextList = this.categories.map(cat => cat.id === newCat.id ? newCat : cat);
-      } else {
-        nextList = [...this.categories, newCat];
-      }
-      nextList.sort((a, b) => a.name.localeCompare(b.name));
-      this.categories = nextList;
-      this.categoriesLoaded = true;
-      this.categoryForm.reset({ name: '' });
-      this.categoryForm.markAsPristine();
-      this.categoryForm.markAsUntouched();
-      this.markStateChanged();
-    } catch (error) {
-      this.categorySubmitError = this.resolveCategoryError(error, 'Unable to create category.');
-    } finally {
-      this.categorySaving = false;
-    }
+  if (!this.showCategoryInput || !name) {
+    this.closeCategory();
+    return;
   }
+
+  if (this.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    this.categorySubmitError = 'Category already exists.';
+    return;
+  }
+
+  if (this.categorySaving) return;
+  this.categorySaving = true;
+
+  try {
+    const dto = await firstValueFrom(this.categoriesApi.create({ name } as CategoryCreateDto));
+    if (!dto || typeof dto.id !== 'number') {
+      throw new Error('Invalid category response');
+    }
+    const newCat: Category = { id: dto.id, name: dto.name, selected: true };
+
+    const nextList = [...this.categories, newCat].sort((a, b) => a.name.localeCompare(b.name));
+    this.categories = nextList;
+    this.categoriesLoaded = true;
+
+    // reset ช่องกรอก และซ่อน
+    this.categoryForm.reset({ name: '' });
+    this.categoryForm.markAsPristine();
+    this.categoryForm.markAsUntouched();
+    this.showCategoryInput = false;
+
+    this.markStateChanged();
+    this.closeCategory();
+  } catch (error) {
+    this.categorySubmitError = this.resolveCategoryError(error, 'Unable to create category.');
+  } finally {
+    this.categorySaving = false;
+  }
+}
+
   private async loadCategories(force = false): Promise<void> {
     if (this.categoryLoading) return;
     if (this.categoriesLoaded && !force) return;

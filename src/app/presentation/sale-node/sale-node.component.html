@@ -3,6 +3,7 @@
 
   <div class="sale-editor">
     <div class="sale-editor__stack">
+      <!-- Title -->
       <button
         type="button"
         class="sale-editor__field"
@@ -12,6 +13,7 @@
         <span [class.sale-editor__placeholder]="titlePlaceholder">{{ title }}</span>
       </button>
 
+      <!-- Subtitle -->
       <button
         type="button"
         class="sale-editor__field"
@@ -21,44 +23,59 @@
         <span [class.sale-editor__placeholder]="subtitlePlaceholder">{{ subtitle }}</span>
       </button>
 
+      <!-- Promotion price -->
       <button
         type="button"
         class="sale-editor__field sale-editor__field--price"
+        [class.is-invalid]="showPromoError"
         [disabled]="frozen"
         (click)="onEdit('promoPrice')"
       >
         <span [class.sale-editor__placeholder]="promoPricePlaceholder">{{ promoPriceDisplay }}</span>
       </button>
+      <div *ngIf="showPromoError" class="sale-editor__error">Please enter the promotion price</div>
 
+      <!-- Normal price -->
       <button
         type="button"
         class="sale-editor__field sale-editor__field--price"
+        [class.is-invalid]="showPriceError"
         [disabled]="frozen"
         (click)="onEdit('price')"
       >
         <span [class.sale-editor__placeholder]="pricePlaceholder">{{ priceDisplay }}</span>
       </button>
+      <div *ngIf="showPriceError" class="sale-editor__error">Please enter the normal price</div>
 
+      <!-- Date + Countdown -->
       <div class="sale-editor__row">
         <button
           type="button"
           class="sale-editor__field sale-editor__field--date"
+          [class.is-invalid]="(dateTouched || showErrors) && (isDateMissing || isDateInPast)"
           [disabled]="frozen"
           (click)="onOpenDate()"
         >
           <i class="bi bi-calendar-event"></i>
-          <span [class.sale-editor__placeholder]="!hasCountdown">{{ hasCountdown ? countdownText : countdownLabel }}</span>
+          <span [class.sale-editor__placeholder]="!hasCountdown">
+            {{ hasCountdown ? countdownText : countdownLabel }}
+          </span>
         </button>
+
         <input
           #saleDateInput
           type="datetime-local"
           class="sale-editor__date-input"
           [disabled]="frozen"
           [value]="endDateInputValue"
+          [min]="minDateForPicker"
           (change)="onDateChange($event)"
         />
       </div>
+      <div *ngIf="showDateMissingError" class="sale-editor__error">Please enter date</div>
+      <div *ngIf="showDatePastError" class="sale-editor__error">Date cannot be in the past</div>
 
+      <!-- Deadline override text -->
       <button
         type="button"
         class="sale-editor__field"
@@ -68,6 +85,7 @@
         <span [class.sale-editor__placeholder]="deadlinePlaceholder">{{ deadlineText }}</span>
       </button>
 
+      <!-- CTA -->
       <button
         type="button"
         class="sale-editor__field sale-editor__field--cta"
@@ -78,6 +96,7 @@
         <i class="bi bi-gear-fill" aria-hidden="true"></i>
       </button>
 
+      <!-- Footer -->
       <button
         type="button"
         class="sale-editor__field"
@@ -88,6 +107,7 @@
       </button>
     </div>
 
+    <!-- Logos / images -->
     <div class="sale-editor__logos">
       <div class="sale-editor__logos-toolbar">
         <button
@@ -100,6 +120,7 @@
           <i class="bi bi-gear-fill" aria-hidden="true"></i>
         </button>
       </div>
+
       <div class="sale-editor__logos-grid">
         <div class="sale-editor__logo-card">
           <button
@@ -125,6 +146,7 @@
             <span [class.sale-editor__placeholder]="leftTextPlaceholder">{{ leftTextLabel }}</span>
           </button>
         </div>
+
         <div class="sale-editor__logo-card">
           <button
             type="button"
