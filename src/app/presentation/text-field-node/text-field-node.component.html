@@ -1,12 +1,12 @@
-<div class="text-field-node" [class.text-field-node--disabled]="frozen">
-  <div class="text-field-node__header">
-    <span>Selection name:</span>
+<div class="tf" [class.tf--disabled]="frozen">
+  <div class="tf__header">
     <button
       type="button"
-      class="text-field-node__remove"
+      class="tf__delete"
       (click)="onRemove($event)"
       [disabled]="frozen"
       aria-label="Remove text field"
+      title="Delete"
     >
       <i class="bi bi-trash"></i>
     </button>
@@ -14,12 +14,14 @@
 
   <button
     type="button"
-    class="text-field-node__body"
-    (click)="onEdit($event)"
+    class="tf__body"
+    (click)="openEdit()"
     [disabled]="frozen"
+    aria-label="Edit text field"
+    title="Edit text"
   >
-    <span [class.text-field-node__placeholder]="isPlaceholder">
-      {{ displayText || 'Text Here' }}
+    <span class="tf__text" [class.tf__placeholder]="!component.textField?.text">
+      {{ component.textField?.text || 'Text Here' }}
     </span>
   </button>
 </div>

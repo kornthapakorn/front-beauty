@@ -1,0 +1,31 @@
+<div class="date" [class.date--disabled]="frozen">
+  <div class="date__header">
+    <button
+      type="button"
+      class="date__delete"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove date field"
+      title="Delete"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="date__body"
+    (click)="openEdit()"
+    [disabled]="frozen"
+    aria-label="Edit date label"
+    title="Edit text"
+  >
+    <span class="date__text" [class.date__placeholder]="!displayText">
+      {{ displayText || 'Text Here' }}
+    </span>
+    <div class="date__decor">
+      <span class="date__decor-text">DD / MM / YYYY</span>
+      <i class="bi bi-calendar-event date__decor-icon"></i>
+    </div>
+  </button>
+</div>

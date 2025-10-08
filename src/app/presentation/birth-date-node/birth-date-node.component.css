@@ -1,4 +1,4 @@
-.tf {
+.bdate {
   width: 100%;
   border: 1px solid #2c2c2c;
   border-radius: 6px;
@@ -7,22 +7,22 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.tf--disabled {
+.bdate--disabled {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.tf__header {
+.bdate__header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   min-height: 28px;
 }
 
-.tf__delete {
+.bdate__delete {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -32,29 +32,29 @@
   line-height: 1;
 }
 
-.tf__delete[disabled] {
+.bdate__delete[disabled] {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.tf__body {
+.bdate__body {
   display: block;
   width: 100%;
   border: 1px solid #3a3a3a;
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 18px;
   background: #fff;
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.tf__body:disabled {
+.bdate__body:disabled {
   cursor: not-allowed;
   opacity: 1;
 }
 
-.tf__text {
+.bdate__text {
   display: block;
   font-size: 18px;
   line-height: 1.4;
@@ -62,7 +62,37 @@
   white-space: pre-wrap;
 }
 
-.tf__placeholder {
+.bdate__placeholder {
   color: #a7a7a7;
   font-style: italic;
+}
+
+.bdate__decor {
+  margin-top: 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.bdate__decor-text {
+  font-size: 16px;
+  color: #b3b3b3;
+}
+
+.bdate__decor-icon {
+  font-size: 20px;
+  color: #2c2c2c;
+}
+
+.bdate__age {
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: #d7d7d7;
+  color: #fff;
+  font-size: 18px;
 }

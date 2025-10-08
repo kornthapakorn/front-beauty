@@ -15,12 +15,16 @@ import {
 import { slugify } from '../../shared/slug.util';
 import { SingleSelectionNodeComponent } from '../single-selection-node/single-selection-node.component';
 import { TextFieldNodeComponent } from '../text-field-node/text-field-node.component';
+import { DateNodeComponent } from '../date-node/date-node.component';
+import { BirthDateNodeComponent } from '../birth-date-node/birth-date-node.component';
+import { ImageUploadNodeComponent } from '../image-upload-node/image-upload-node.component';
 
 export type FormTemplateField = 'topic' | 'popupText' | 'textOnButton' | 'componentText';
 
 export interface FormTemplateTextEvent {
   path: number[];
   field: FormTemplateField;
+  component?: FormComponentTemplateDto;
 }
 
 type FormTemplateProps = {
@@ -36,7 +40,7 @@ type FormTemplateProps = {
 @Component({
   selector: 'app-form-template-node',
   standalone: true,
-  imports: [CommonModule, FormsModule, SingleSelectionNodeComponent, TextFieldNodeComponent],
+  imports: [CommonModule, FormsModule, SingleSelectionNodeComponent, TextFieldNodeComponent, DateNodeComponent, BirthDateNodeComponent, ImageUploadNodeComponent],
   templateUrl: './form-template-node.component.html',
   styleUrls: ['./form-template-node.component.css']
 })
@@ -237,7 +241,49 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     this.ensureTextField(comp);
     this.openTextForField.emit({
       path: this.path,
-      field: 'componentText'
+      field: 'componentText',
+      component: comp
+    });
+  }
+
+  openDateField(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureDateField(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText',
+      component: comp
+    });
+  }
+  openBirthDateField(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureBirthDate(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText',
+      component: comp
+    });
+  }
+
+  openImageUploadField(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureImageUpload(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText',
+      component: comp
     });
   }
 
@@ -248,6 +294,15 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
 
   ensureDateField(comp: FormComponentTemplateDto): boolean {
     comp.date ??= { text: '' };
+    return true;
+  }
+  ensureBirthDate(comp: FormComponentTemplateDto): boolean {
+    comp.birthDate ??= { label: '' };
+    return true;
+  }
+
+  ensureImageUpload(comp: FormComponentTemplateDto): boolean {
+    comp.imageUpload ??= { text: '' };
     return true;
   }
 
@@ -285,5 +340,8 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
       });
   }
 }
+
+
+
 
 

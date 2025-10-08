@@ -1,0 +1,35 @@
+<div class="bdate" [class.bdate--disabled]="frozen">
+  <div class="bdate__header">
+    <button
+      type="button"
+      class="bdate__delete"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove birth date field"
+      title="Delete"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="bdate__body"
+    (click)="openEdit()"
+    [disabled]="frozen"
+    aria-label="Edit birth date label"
+    title="Edit text"
+  >
+    <span class="bdate__text" [class.bdate__placeholder]="!displayLabel">
+      {{ displayLabel || 'Text Here' }}
+    </span>
+    <div class="bdate__decor">
+      <span class="bdate__decor-text">DD / MM / YYYY</span>
+      <i class="bi bi-calendar-event bdate__decor-icon"></i>
+    </div>
+  </button>
+
+  <div class="bdate__age" aria-hidden="true">
+    <span>อายุ</span>
+  </div>
+</div>

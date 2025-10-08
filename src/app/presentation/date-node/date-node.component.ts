@@ -3,13 +3,13 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { FormComponentTemplateDto } from '../../models/form-component';
 
 @Component({
-  selector: 'app-text-field-node',
+  selector: 'app-date-node',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './text-field-node.component.html',
-  styleUrls: ['./text-field-node.component.css']
+  templateUrl: './date-node.component.html',
+  styleUrls: ['./date-node.component.css']
 })
-export class TextFieldNodeComponent implements OnChanges {
+export class DateNodeComponent implements OnChanges {
   @Input({ required: true }) component!: FormComponentTemplateDto;
   @Input() frozen = false;
 
@@ -18,14 +18,18 @@ export class TextFieldNodeComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['component'] && this.component) {
-      this.ensureTextField();
+      this.ensureDateField();
     }
+  }
+
+  get displayText(): string {
+    return this.component?.date?.text ?? '';
   }
 
   openEdit(): void {
     if (this.frozen) return;
-    this.ensureTextField();
-    this.edit.emit(this.component); // allow parent to open modal editor
+    this.ensureDateField();
+    this.edit.emit(this.component);
   }
 
   onRemove(event: Event): void {
@@ -35,9 +39,9 @@ export class TextFieldNodeComponent implements OnChanges {
     this.remove.emit(this.component);
   }
 
-  private ensureTextField(): void {
-    if (!this.component.textField) {
-      this.component.textField = { text: '' };
+  private ensureDateField(): void {
+    if (!this.component.date) {
+      this.component.date = { text: '' };
     }
   }
 }

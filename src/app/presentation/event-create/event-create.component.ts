@@ -28,7 +28,7 @@ type Category = { id: number; name: string; selected: boolean };
 // ?????? event ??? GridTwoColumn node
 type GridImageEvent = { path: number[]; side: 'left' | 'right' };
 type ImageField = 'display_picture' | 'leftImage' | 'rightImage' | 'popupImage' | GridFourImageField;
-type TextField  = 'display_text' | 'leftText' | 'rightText' | 'title' | 'textDesc' | 'textTopic' | 'topic' | 'leftTitle' | 'rightTitle' | 'leftTextDesc' | 'rightTextDesc' | 'text' | 'promoPrice' | 'price' | 'endDate' | 'textFooter';
+type TextField  = 'display_text' | 'leftText' | 'rightText' | 'title' | 'textDesc' | 'textTopic' | 'topic' | 'leftTitle' | 'rightTitle' | 'leftTextDesc' | 'rightTextDesc' | 'text' | 'componentText' | 'promoPrice' | 'price' | 'endDate' | 'textFooter';
 
 export interface ComponentProps {
   display_picture?: { src: string };
@@ -159,6 +159,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   frontPickerOpen = false;
 
   textConfigTarget: { inst: CompInstance; field: TextField } | null = null;
+  formTextComponentTarget: FormComponentTemplateDto | null = null;
   buttonConfigTarget: CompInstance | null = null;
   twoTopicButtonTarget: { inst: CompInstance; side: TwoTopicSide } | null = null;
   gridTwoUrlTarget: CompInstance | null = null;
@@ -550,11 +551,37 @@ async createCategory() {
     const target = this.getNodeAtPath(ev.path);
     if (!target) return;
     this.buttonConfigTarget = null;
-    const field = ev.field as TextField;
+    const field = (ev.field === 'componentText' ? 'componentText' : ev.field) as TextField;
     const props = (target.props ??= {} as ComponentProps);
-    const current = this.coerceString((props as any)[field]);
+
+    let current = '';
+    if (field === 'componentText') {
+      const component = ev.component ?? null;
+      this.formTextComponentTarget = component ?? null;
+      if (component) {
+        if (component.componentType === 'date' || component.date) {
+          component.date ??= { text: '' };
+          current = this.coerceString(component.date?.text);
+        } else if (component.componentType === 'birthDate' || component.birthDate) {
+          component.birthDate ??= { label: '' };
+          current = this.coerceString(component.birthDate?.label);
+        } else if (component.componentType === 'imageUpload' || component.imageUpload) {
+          component.imageUpload ??= { text: '' };
+          current = this.coerceString(component.imageUpload?.text);
+        } else {
+          component.textField ??= { text: '' };
+          current = this.coerceString(component.textField?.text);
+        }
+      } else {
+        current = this.coerceString((props as any).componentText);
+      }
+    } else {
+      this.formTextComponentTarget = null;
+      current = this.coerceString((props as any)[field]);
+    }
+
     this.configureTextConfigControl('display_text', current);
-    this.textConfigTarget = { inst: target, field: field as TextField };
+    this.textConfigTarget = { inst: target, field };
   }
 
 
@@ -672,6 +699,7 @@ async createCategory() {
   closeTextConfig(): void {
     this.configureTextConfigControl('display_text', '');
     this.textConfigTarget = null;
+    this.formTextComponentTarget = null;
   }
   saveTextConfig(): void {
     if (!this.textConfigTarget) return;
@@ -690,6 +718,28 @@ async createCategory() {
 
     const { inst, field } = this.textConfigTarget;
     const props = (inst.props ??= {} as ComponentProps);
+
+    if (field === 'componentText') {
+      const component = this.formTextComponentTarget;
+      if (component) {
+        if (component.componentType === 'date' || component.date) {
+          component.date ??= { text: '' };
+          component.date.text = text;
+        } else if (component.componentType === 'birthDate' || component.birthDate) {
+          component.birthDate ??= { label: '' };
+          component.birthDate.label = text;
+        } else if (component.componentType === 'imageUpload' || component.imageUpload) {
+          component.imageUpload ??= { text: '' };
+          component.imageUpload.text = text;
+        } else {
+          component.textField ??= { text: '' };
+          component.textField.text = text;
+        }
+      }
+      (props as any).componentText = text;
+      this.closeTextConfig();
+      return;
+    }
 
     if (this.isPriceField(field)) {
       if (!text) {
@@ -1616,6 +1666,7 @@ async createCategory() {
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
+
 
 
 

@@ -1,0 +1,37 @@
+<div class="iu" [class.iu--disabled]="frozen">
+  <div class="iu__header">
+    <button
+      type="button"
+      class="iu__delete"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove image upload field"
+      title="Delete"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <div class="iu__panel">
+    <button
+      type="button"
+      class="iu__text-area"
+      (click)="openEdit()"
+      [disabled]="frozen"
+      aria-label="Edit image upload description"
+      title="Edit text"
+    >
+      <span class="iu__text" [class.iu__placeholder]="!displayText">
+        {{ displayText || 'Text Here' }}
+      </span>
+    </button>
+
+    <div class="iu__upload" aria-hidden="true">
+      <svg class="iu__upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="iu__upload-label">เพิ่มไฟล์</span>
+    </div>
+  </div>
+</div>

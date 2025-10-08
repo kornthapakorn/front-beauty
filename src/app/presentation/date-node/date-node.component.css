@@ -1,4 +1,4 @@
-.tf {
+.date {
   width: 100%;
   border: 1px solid #2c2c2c;
   border-radius: 6px;
@@ -10,19 +10,19 @@
   gap: 10px;
 }
 
-.tf--disabled {
+.date--disabled {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.tf__header {
+.date__header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   min-height: 28px;
 }
 
-.tf__delete {
+.date__delete {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -32,29 +32,29 @@
   line-height: 1;
 }
 
-.tf__delete[disabled] {
+.date__delete[disabled] {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.tf__body {
+.date__body {
   display: block;
   width: 100%;
   border: 1px solid #3a3a3a;
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 18px;
   background: #fff;
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.tf__body:disabled {
+.date__body:disabled {
   cursor: not-allowed;
   opacity: 1;
 }
 
-.tf__text {
+.date__text {
   display: block;
   font-size: 18px;
   line-height: 1.4;
@@ -62,7 +62,28 @@
   white-space: pre-wrap;
 }
 
-.tf__placeholder {
+.date__placeholder {
   color: #a7a7a7;
   font-style: italic;
+}
+
+.date__decor {
+  margin-top: 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.date__decor-text {
+  font-size: 16px;
+  color: #b3b3b3;
+}
+
+.date__decor-icon {
+  font-size: 20px;
+  color: #2c2c2c;
 }

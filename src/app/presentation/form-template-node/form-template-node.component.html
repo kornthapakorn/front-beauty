@@ -57,6 +57,27 @@
                   (edit)="openTextField(comp)"
                   (remove)="removeComponent(i)"
                 ></app-text-field-node>
+                <app-date-node
+                  *ngSwitchCase="'date'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (edit)="openDateField(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-date-node>
+                <app-birth-date-node
+                  *ngSwitchCase="'birthDate'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (edit)="openBirthDateField(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-birth-date-node>
+                <app-image-upload-node
+                  *ngSwitchCase="'imageUpload'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (edit)="openImageUploadField(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-image-upload-node>
                 <div *ngSwitchDefault class="form-template__component">
                   <span>{{ getComponentLabel(comp.componentType) }}</span>
                   <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
@@ -155,3 +176,6 @@
     </div>
   </div>
 </div>
+
+
+
