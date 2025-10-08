@@ -49,6 +49,7 @@ export class HostNodeComponent {
   @Input() siblingsLen = 0;
   @Input() mode: 'front' | 'back' = 'front';
   @Input() rootDepth = 1;
+  @Input() submitAttempted = false;
   @Output() addChild = new EventEmitter<number[]>();
   @Output() childMoveUp = new EventEmitter<MoveEvent>();
   @Output() childMoveDown = new EventEmitter<MoveEvent>();

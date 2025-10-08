@@ -36,7 +36,7 @@
 
       <div section-node-children class="section-node__children">
         <div class="section-node__child" *ngFor="let child of children; let idx = index; trackBy: trackChild">
-          <app-host-node [node]="child" [path]="append(path, idx)" [siblingsLen]="children.length" [mode]="mode" [rootDepth]="rootDepth"
+          <app-host-node [node]="child" [path]="append(path, idx)" [siblingsLen]="children.length" [mode]="mode" [rootDepth]="rootDepth" [submitAttempted]="submitAttempted"
             (addChild)="addChild.emit($event)" (childMoveUp)="childMoveUp.emit($event)"
             (childMoveDown)="childMoveDown.emit($event)" (childMoveToBack)="childMoveToBack.emit($event)"
             (moveToFront)="moveToFront.emit($event)" (childRemove)="childRemove.emit($event)" (openPickerForNode)="openPickerForNode.emit($event)"
@@ -46,7 +46,7 @@
             (openGridUrlCfgForNode)="openGridUrlCfgForNode.emit($event)"
             (openSaleTextCfgForNode)="openSaleTextCfgForNode.emit($event)"
             (openFormTemplateText)="openFormTemplateText.emit($event)"
-            (saleDateChange)="saleDateChange.emit($event)"></app-host-node>
+            (saleDateChange)="saleDateChange.emit($event)" [submitAttempted]="submitAttempted"></app-host-node>
         </div>
       </div>
     </app-section-node>
@@ -148,7 +148,7 @@
         <app-sale-node *ngSwitchCase="'sale'" [node]="node" [path]="path" [frozen]="frozen"
           (openTextForField)="openSaleTextCfgForNode.emit($event)" (openBtnCfgForNode)="openBtnCfgForNode.emit($event)"
           (openImageForSide)="openGridImageForNode.emit($event)" (openUrlConfig)="openGridUrlCfgForNode.emit($event)"
-          (endDateChange)="saleDateChange.emit($event)">
+          (endDateChange)="saleDateChange.emit($event)" [showErrors]="submitAttempted">
           <ng-container node-header>
             <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
           </ng-container>

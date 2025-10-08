@@ -118,6 +118,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   });
   errors: { endDate?: string; eventName?: string } = {};
   submitting = false;
+  submitAttempted = false;
 
   // success modal + toast
   modalOpen = false;
@@ -1347,6 +1348,7 @@ async createCategory() {
 
   /** ---------- SAVE ---------- */
   async save() {
+    this.submitAttempted = true;
     this.errors = {};
     const name = this.form.value.name?.trim() || '';
     const endDate = this.form.value.endDate || '';
@@ -1360,6 +1362,11 @@ async createCategory() {
 
     if (this.errors.endDate || this.errors.eventName) {
       setTimeout(() => document.querySelector('.field.invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      return;
+    }
+
+    if (this.hasInvalidSaleComponents()) {
+      setTimeout(() => document.querySelector('.sale-editor__field.is-invalid, .sale-editor__error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       return;
     }
 
@@ -1383,10 +1390,77 @@ async createCategory() {
       next: () => {
         this.submitting = false;
         this.clearDraft();
+        this.submitAttempted = false;
         this.showToast('Created event successfully');
       },
       error: (err: unknown) => { this.submitting = false; const message = (err as { error?: string })?.error ?? 'Create failed'; alert(message); }
     });
+  }
+
+  private hasInvalidSaleComponents(): boolean {
+    return this.listHasInvalidSale(this.frontComponents) || this.listHasInvalidSale(this.backComponents);
+  }
+
+  private listHasInvalidSale(list: CompInstance[]): boolean {
+    for (const inst of list) {
+      if (this.compHasInvalidSale(inst)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private compHasInvalidSale(inst: CompInstance): boolean {
+    const type = this.normalizeType((inst.comp as any)?.tagName ?? (inst.comp as any)?.componentType);
+    if (type === 'sale') {
+      const props = (inst.props ?? {}) as ComponentProps;
+      if (!this.isValidSaleNumber((props as any).promoPrice)) {
+        return true;
+      }
+      if (!this.isValidSaleNumber((props as any).price)) {
+        return true;
+      }
+      if (this.saleDateHasIssue((props as any).endDate)) {
+        return true;
+      }
+    }
+    const children = (inst.props?.children ?? []) as CompInstance[];
+    for (const child of children) {
+      if (this.compHasInvalidSale(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private isValidSaleNumber(value: unknown): boolean {
+    const numeric = this.parseSaleNumber(value);
+    return numeric !== null && numeric > 0;
+  }
+
+  private parseSaleNumber(value: unknown): number | null {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+    if (typeof value === 'string') {
+      const cleaned = value.replace(/[^0-9.,-]/g, '').replace(/,/g, '');
+      if (!cleaned.trim()) {
+        return null;
+      }
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  private saleDateHasIssue(value: unknown): boolean {
+    const str = this.coerceString(value);
+    if (!str) return true;
+    const parsed = new Date(str);
+    if (Number.isNaN(parsed.getTime())) {
+      return true;
+    }
+    return parsed.getTime() < Date.now();
   }
 
   /** ---------- utils ---------- */

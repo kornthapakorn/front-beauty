@@ -182,7 +182,7 @@
             <app-host-node
               [node]="inst"
               [path]="[i]"
-              [siblingsLen]="frontComponents.length"
+              [siblingsLen]="frontComponents.length" [submitAttempted]="submitAttempted"
               (addChild)="onAddChild($event)"
               (childMoveUp)="onChildMoveUp($event)"
               (childMoveDown)="onChildMoveDown($event)"
@@ -228,7 +228,7 @@
             <app-host-node
               [node]="inst"
               [path]="[backRoot, j]"
-              [siblingsLen]="backComponents.length"
+              [siblingsLen]="backComponents.length" [submitAttempted]="submitAttempted"
               [mode]="'back'"
               [rootDepth]="backRootDepth"
               (addChild)="onAddChild($event)"
