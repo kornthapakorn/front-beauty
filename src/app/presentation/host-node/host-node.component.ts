@@ -8,7 +8,7 @@ import { GenericNodeComponent } from '../generic-node/generic-node.component';
 import { ImageCaptionNodeComponent } from '../image-caption-node/image-caption-node.component';
 import { ImageDescNodeComponent } from '../image-desc-node/image-desc-node.component';
 import { AboutUNodeComponent } from '../about-u-node/about-u-node.component';
-import { FormTemplateNodeComponent, FormTemplateTextEvent } from '../form-template-node/form-template-node.component';
+import { FormTemplateNodeComponent, FormTemplateTextEvent, FormTemplateImageEvent } from '../form-template-node/form-template-node.component';
 import { TableTopicDescNodeComponent, TableTopicDescEvent } from '../table-topic-desc-node/table-topic-desc-node.component';
 import { OneTopicImageCaptionButtonNodeComponent } from '../one-topic-image-caption-button-node/one-topic-image-caption-button-node.component';
 import { TwoTopicImageCaptionButtonNodeComponent, TwoTopicImageCaptionButtonEvent, TwoTopicTextEvent } from '../two-topic-image-caption-button-node/two-topic-image-caption-button-node.component';
@@ -70,6 +70,7 @@ export class HostNodeComponent {
   @Output() openSaleTextCfgForNode = new EventEmitter<SaleTextEvent>();
   @Output() saleDateChange = new EventEmitter<SaleDateChangeEvent>();
   @Output() openFormTemplateText = new EventEmitter<FormTemplateTextEvent>();
+  @Output() openFormTemplateImage = new EventEmitter<FormTemplateImageEvent>();
 
   get title(): string {
     return (
@@ -189,46 +190,4 @@ export class HostNodeComponent {
     return !!value;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -38,9 +38,20 @@
 
         <div class="form-template__group">
           <label>Topic:</label>
-          <button type="button" class="form-template__plain-field" (click)="openTopic()" [disabled]="frozen">
+          <button
+            type="button"
+            class="form-template__plain-field"
+            [class.form-template__plain-field--error]="topicErrorMessage"
+            (click)="openTopic()"
+            [disabled]="frozen"
+            [attr.aria-invalid]="topicErrorMessage ? 'true' : null"
+          >
             <span [class.form-template__placeholder]="!props.topic">{{ props.topic || 'Text Here' }}</span>
           </button>
+          <div class="form-template__field-error" *ngIf="topicErrorMessage" aria-live="polite">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>{{ topicErrorMessage }}</span>
+          </div>
         </div>
 
         <div class="form-template__divider"></div>
@@ -78,6 +89,22 @@
                   (edit)="openImageUploadField(comp)"
                   (remove)="removeComponent(i)"
                 ></app-image-upload-node>
+                <app-form-button-node
+                  *ngSwitchCase="'formButton'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (edit)="openFormButtonText(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-form-button-node>
+                <app-image-upload-with-content-node
+                  *ngSwitchCase="'imageUploadWithImageContent'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  [showError]="shouldShowImageContentError(comp)"
+                  (edit)="openImageUploadWithContentText(comp)"
+                  (pickImage)="openImageUploadWithContentImage(comp)"
+                  (remove)="removeComponent(i)"
+                ></app-image-upload-with-content-node>
                 <div *ngSwitchDefault class="form-template__component">
                   <span>{{ getComponentLabel(comp.componentType) }}</span>
                   <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
@@ -116,17 +143,40 @@
 
         <div class="form-template__popup">
           <span>Popup after submit</span>
-          <button type="button" class="form-template__popup-image" (click)="openPopupImage()" [disabled]="frozen">
+          <button
+            type="button"
+            class="form-template__popup-image"
+            [class.form-template__popup-image--error]="popupImageErrorMessage"
+            (click)="openPopupImage()"
+            [disabled]="frozen"
+            [attr.aria-invalid]="popupImageErrorMessage ? 'true' : null"
+            aria-label="Select popup image"
+          >
             <ng-container *ngIf="props.popupImage; else popupPlaceholder">
               <img [src]="props.popupImage" alt="Popup preview" />
             </ng-container>
             <ng-template #popupPlaceholder>
-              <i class="bi bi-image"></i>
+              <img src="assets/icons/upload.png">
             </ng-template>
           </button>
-          <button type="button" class="form-template__plain-field" (click)="openPopupText()" [disabled]="frozen">
+          <div class="form-template__field-error" *ngIf="popupImageErrorMessage" aria-live="polite">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>{{ popupImageErrorMessage }}</span>
+          </div>
+          <button
+            type="button"
+            class="form-template__plain-field"
+            [class.form-template__plain-field--error]="popupTextErrorMessage"
+            (click)="openPopupText()"
+            [disabled]="frozen"
+            [attr.aria-invalid]="popupTextErrorMessage ? 'true' : null"
+          >
             <span [class.form-template__placeholder]="!props.popupText">{{ props.popupText || 'Text Here' }}</span>
           </button>
+          <div class="form-template__field-error" *ngIf="popupTextErrorMessage" aria-live="polite">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>{{ popupTextErrorMessage }}</span>
+          </div>
         </div>
 
         <div class="form-template__divider"></div>
@@ -141,7 +191,7 @@
         </div>
 
         <div class="form-template__actions">
-          <button type="button" (click)="closeConfig()" [disabled]="frozen">Save &amp; Exit</button>
+          <button type="button" (click)="saveConfig()" [disabled]="frozen">Save &amp; Exit</button>
         </div>
       </div>
     </div>
@@ -176,6 +226,4 @@
     </div>
   </div>
 </div>
-
-
 

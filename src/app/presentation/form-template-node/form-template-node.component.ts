@@ -18,6 +18,8 @@ import { TextFieldNodeComponent } from '../text-field-node/text-field-node.compo
 import { DateNodeComponent } from '../date-node/date-node.component';
 import { BirthDateNodeComponent } from '../birth-date-node/birth-date-node.component';
 import { ImageUploadNodeComponent } from '../image-upload-node/image-upload-node.component';
+import { FormButtonNodeComponent } from '../form-button-node/form-button-node.component';
+import { ImageUploadWithContentNodeComponent } from '../image-upload-with-content-node/image-upload-with-content-node.component';
 
 export type FormTemplateField = 'topic' | 'popupText' | 'textOnButton' | 'componentText';
 
@@ -25,6 +27,11 @@ export interface FormTemplateTextEvent {
   path: number[];
   field: FormTemplateField;
   component?: FormComponentTemplateDto;
+}
+
+export interface FormTemplateImageEvent {
+  path: number[];
+  component: FormComponentTemplateDto;
 }
 
 type FormTemplateProps = {
@@ -40,7 +47,7 @@ type FormTemplateProps = {
 @Component({
   selector: 'app-form-template-node',
   standalone: true,
-  imports: [CommonModule, FormsModule, SingleSelectionNodeComponent, TextFieldNodeComponent, DateNodeComponent, BirthDateNodeComponent, ImageUploadNodeComponent],
+  imports: [CommonModule, FormsModule, SingleSelectionNodeComponent, TextFieldNodeComponent, DateNodeComponent, BirthDateNodeComponent, ImageUploadNodeComponent, ImageUploadWithContentNodeComponent, FormButtonNodeComponent],
   templateUrl: './form-template-node.component.html',
   styleUrls: ['./form-template-node.component.css']
 })
@@ -48,9 +55,11 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   @Input() node!: HostNode;
   @Input() path: number[] = [];
   @Input() frozen = false;
+  @Input() submitAttempted = false;
 
   @Output() openTextForField = new EventEmitter<FormTemplateTextEvent>();
   @Output() openImagePicker = new EventEmitter<number[]>();
+  @Output() openImageForComponent = new EventEmitter<FormTemplateImageEvent>();
 
   readonly palette: ReadonlyArray<FormComponentPaletteItem> = FORM_COMPONENT_PALETTE;
 
@@ -59,6 +68,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   loadingComponents = false;
   loadError = '';
   copied = false;
+  configSubmitAttempted = false;
 
   onRootCardActivate(event: Event): void {
     event?.preventDefault();
@@ -114,13 +124,58 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     return this.ensureSlug();
   }
 
+  get topicMissing(): boolean {
+    return !this.trimString(this.props.topic);
+  }
+
+  private trimString(value: string | undefined | null): string {
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  get popupTextMissing(): boolean {
+    return !this.trimString(this.props.popupText);
+  }
+
+  get popupImageMissing(): boolean {
+    return !this.trimString(this.props.popupImage);
+  }
+
+  private get shouldShowFieldErrors(): boolean {
+    return this.configSubmitAttempted || this.submitAttempted;
+  }
+
+  private get hasPopupImageError(): boolean {
+    const props = this.props as Record<string, unknown>;
+    const message = typeof props['popupImageError'] === "string" ? props['popupImageError'].trim() : "";
+    return message.length > 0;
+  }
+
+  get topicErrorMessage(): string {
+    if (!this.shouldShowFieldErrors) return "";
+    return this.topicMissing ? "Please Complete all required fields" : "";
+  }
+
+  get popupTextErrorMessage(): string {
+    if (!this.shouldShowFieldErrors) return "";
+    return this.popupTextMissing ? "Please Complete all required fields" : "";
+  }
+
+  get popupImageErrorMessage(): string {
+    const props = this.props as Record<string, unknown>;
+    const explicit = typeof props['popupImageError'] === "string" ? props['popupImageError'].trim() : "";
+    if (explicit) return explicit;
+    if (!this.shouldShowFieldErrors) return "";
+    return this.popupImageMissing ? "Please upload only image file (jpg, jpeg, png)" : "";
+  }
+
   get activeComponents(): FormComponentTemplateDto[] {
     return this.props.formComponents!.filter((c: FormComponentTemplateDto) => !c.isDelete);
   }
-
   get singleSelectionComponent(): FormComponentTemplateDto | undefined {
     return this.activeComponents.find((comp: FormComponentTemplateDto) => comp.componentType === 'singleSelection');
   }
+
+
 
   openConfig(event?: Event): void {
     event?.stopPropagation();
@@ -129,6 +184,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     this.ensureProps();
     this.componentsMenuOpen = false;
     this.copied = false;
+    this.configSubmitAttempted = false;
     this.configOpen = true;
     this.loadExistingComponents();
   }
@@ -136,7 +192,17 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   closeConfig(): void {
     this.configOpen = false;
     this.componentsMenuOpen = false;
+    this.configSubmitAttempted = false;
   }
+  saveConfig(): void {
+    if (this.frozen) return;
+    this.configSubmitAttempted = true;
+    if (this.topicMissing || this.popupTextMissing || this.popupImageMissing || this.hasPopupImageError) {
+      return;
+    }
+    this.closeConfig();
+  }
+
 
   togglePalette(): void {
     if (this.frozen) return;
@@ -287,6 +353,44 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  openImageUploadWithContentText(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureImageUploadWithContent(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText',
+      component: comp
+    });
+  }
+
+  openFormButtonText(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureFormButton(comp);
+    this.openTextForField.emit({
+      path: this.path,
+      field: 'componentText',
+      component: comp
+    });
+  }
+
+  openImageUploadWithContentImage(comp: FormComponentTemplateDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (this.frozen) return;
+    this.ensureImageUploadWithContent(comp);
+    this.openImageForComponent.emit({ path: this.path, component: comp });
+  }
+
   ensureTextField(comp: FormComponentTemplateDto): boolean {
     comp.textField ??= { text: '' };
     return true;
@@ -301,10 +405,31 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     return true;
   }
 
+  ensureFormButton(comp: FormComponentTemplateDto): boolean {
+    comp.formButton ??= { textOnButton: 'Button', isActive: true, url: '' };
+    return true;
+  }
+
   ensureImageUpload(comp: FormComponentTemplateDto): boolean {
     comp.imageUpload ??= { text: '' };
     return true;
   }
+  ensureImageUploadWithContent(comp: FormComponentTemplateDto): boolean {
+    comp.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+    return true;
+  }
+
+  shouldShowImageContentError(comp: FormComponentTemplateDto | null | undefined): boolean {
+    if (!comp) return false;
+    const model = comp.imageUploadWithImageContent;
+    if (!model) return false;
+    const state = model as { image?: string; __imageError?: string | null };
+    if (state.__imageError) return true;
+    if (!this.shouldShowFieldErrors) return false;
+    const image = typeof model.image === 'string' ? model.image.trim() : '';
+    return image.length === 0;
+  }
+
 
   private ensureProps(): void {
     this.props.formComponents ??= [];
@@ -340,6 +465,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
       });
   }
 }
+
 
 
 

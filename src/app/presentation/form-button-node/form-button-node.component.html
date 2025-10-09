@@ -1,0 +1,88 @@
+<div class="fbn" [class.fbn--disabled]="frozen">
+  <div class="fbn__header">
+    <button
+      type="button"
+      class="fbn__icon-button"
+      (click)="openConfig($event)"
+      [disabled]="frozen"
+      aria-label="Configure button"
+      title="Configure"
+    >
+      <i class="bi bi-gear"></i>
+    </button>
+    <button
+      type="button"
+      class="fbn__icon-button fbn__icon-button--danger"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove button field"
+      title="Delete"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <div class="fbn__panel">
+    <button
+      type="button"
+      class="fbn__button"
+      [ngClass]="buttonClasses"
+      (click)="openTextEdit($event)"
+      [disabled]="frozen"
+      aria-label="Edit button text"
+      title="Edit text"
+    >
+      {{ buttonText }}
+    </button>
+  </div>
+
+  <div class="fbn__config" *ngIf="configOpen" (click)="$event.stopPropagation()">
+    <div class="fbn__config-backdrop" (click)="closeConfig()"></div>
+    <div class="fbn__config-panel" role="dialog" aria-modal="true" aria-label="Configure form button">
+      <div class="fbn__config-header">
+        <h3>Button link</h3>
+        <button type="button" class="fbn__icon-button" (click)="closeConfig()" aria-label="Close button settings">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="fbn__config-body">
+        <div class="fbn__toggle">
+          <span class="fbn__toggle-label">Activate button</span>
+          <div class="fbn__toggle-options">
+            <button 
+              type="button" 
+              class="fbn__toggle-option fbn__toggle-option--on" 
+              [class.is-active]="configIsActive" 
+              (click)="setActive(true)"
+            >
+              ON
+            </button>
+            <button 
+              type="button" 
+              class="fbn__toggle-option fbn__toggle-option--off" 
+              [class.is-active]="!configIsActive" 
+              (click)="setActive(false)"
+            >
+              OFF
+            </button>
+          </div>
+        </div>
+
+        <label class="fbn__label" for="fbnUrlInput">URL:</label>
+        <input
+          id="fbnUrlInput"
+          type="text"
+          class="fbn__input"
+          [(ngModel)]="configUrl"
+          [disabled]="frozen"
+          placeholder="https://example.com"
+        />
+      </div>
+
+      <div class="fbn__config-actions">
+        <button type="button" class="fbn__save" (click)="saveConfig()">Save &amp; Exit</button>
+      </div>
+    </div>
+  </div>
+</div>

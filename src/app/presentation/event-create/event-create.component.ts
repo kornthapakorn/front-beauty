@@ -19,7 +19,7 @@ import { EventPreviewComponent } from '../event-preview/event-preview.component'
 import { GridFourImageEvent, GridFourImageField } from '../grid-four-image-node/grid-four-image-node.component';
 import { TwoTopicImageCaptionButtonEvent, TwoTopicTextEvent, TwoTopicTextField, TwoTopicSide } from '../two-topic-image-caption-button-node/two-topic-image-caption-button-node.component';
 import { TableTopicDescEvent, TableField } from '../table-topic-desc-node/table-topic-desc-node.component';
-import { FormTemplateTextEvent } from '../form-template-node/form-template-node.component';
+import { FormTemplateTextEvent, FormTemplateImageEvent } from '../form-template-node/form-template-node.component';
 import { SaleTextEvent, SaleDateChangeEvent } from '../sale-node/sale-node.component';
 
 /** ---------- Local helper types ---------- */
@@ -27,7 +27,7 @@ type Category = { id: number; name: string; selected: boolean };
 
 // ?????? event ??? GridTwoColumn node
 type GridImageEvent = { path: number[]; side: 'left' | 'right' };
-type ImageField = 'display_picture' | 'leftImage' | 'rightImage' | 'popupImage' | GridFourImageField;
+type ImageField = 'display_picture' | 'leftImage' | 'rightImage' | 'popupImage' | 'formComponentImage' | GridFourImageField;
 type TextField  = 'display_text' | 'leftText' | 'rightText' | 'title' | 'textDesc' | 'textTopic' | 'topic' | 'leftTitle' | 'rightTitle' | 'leftTextDesc' | 'rightTextDesc' | 'text' | 'componentText' | 'promoPrice' | 'price' | 'endDate' | 'textFooter';
 
 export interface ComponentProps {
@@ -164,7 +164,8 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   twoTopicButtonTarget: { inst: CompInstance; side: TwoTopicSide } | null = null;
   gridTwoUrlTarget: CompInstance | null = null;
 
-  imagePickerTarget: { inst: CompInstance; field: ImageField } | null = null;
+  imagePickerTarget: { inst: CompInstance; field: ImageField; formComponent?: FormComponentTemplateDto } | null = null;
+  private formComponentImageSerial = 0;
   @ViewChild('componentImageInput') componentImageInput?: ElementRef<HTMLInputElement>;
 
   private readonly textConfigDefaultValidators = [Validators.maxLength(500)];
@@ -547,6 +548,13 @@ async createCategory() {
     this.gridTwoUrlForm.reset({ leftUrl: '', rightUrl: '' });
     this.gridTwoUrlTarget = null;
   }
+  onOpenFormTemplateImage(ev: FormTemplateImageEvent): void {
+    const target = this.getNodeAtPath(ev.path);
+    if (!target) return;
+    this.imagePickerTarget = { inst: target, field: 'formComponentImage', formComponent: ev.component };
+    this.componentImageInput?.nativeElement?.click();
+  }
+
   onOpenFormTemplateText(ev: FormTemplateTextEvent): void {
     const target = this.getNodeAtPath(ev.path);
     if (!target) return;
@@ -568,6 +576,12 @@ async createCategory() {
         } else if (component.componentType === 'imageUpload' || component.imageUpload) {
           component.imageUpload ??= { text: '' };
           current = this.coerceString(component.imageUpload?.text);
+        } else if (component.componentType === 'imageUploadWithImageContent' || component.imageUploadWithImageContent) {
+          component.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+          current = this.coerceString(component.imageUploadWithImageContent?.textDesc);
+        } else if (component.componentType === 'formButton' || component.formButton) {
+          component.formButton ??= { textOnButton: 'Button', isActive: true, url: '' };
+          current = this.coerceString(component.formButton?.textOnButton);
         } else {
           component.textField ??= { text: '' };
           current = this.coerceString(component.textField?.text);
@@ -731,6 +745,12 @@ async createCategory() {
         } else if (component.componentType === 'imageUpload' || component.imageUpload) {
           component.imageUpload ??= { text: '' };
           component.imageUpload.text = text;
+        } else if (component.componentType === 'formButton' || component.formButton) {
+          component.formButton ??= { textOnButton: 'Button', isActive: true, url: '' };
+          component.formButton.textOnButton = text;
+        } else if (component.componentType === 'imageUploadWithImageContent' || component.imageUploadWithImageContent) {
+          component.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+          component.imageUploadWithImageContent.textDesc = text;
         } else {
           component.textField ??= { text: '' };
           component.textField.text = text;
@@ -1017,18 +1037,54 @@ async createCategory() {
   onComponentImagePicked(event: Event): void {
     const target = this.imagePickerTarget;
     if (!target) return;
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { alert('????????????????????'); input.value = ''; return; }
-    this.assignImageToInst(target.inst, target.field, file);
-    input.value = '';
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0] ?? null;
+    if (!file) {
+      if (input) input.value = '';
+      this.imagePickerTarget = null;
+      return;
+    }
+
+    const isAllowedImage = this.isAllowedImageType(file);
+
+    if (target.field === 'formComponentImage') {
+      if (!isAllowedImage) {
+        this.setFormComponentImageError(target.formComponent, 'invalidType');
+        if (input) input.value = '';
+        this.imagePickerTarget = null;
+        return;
+      }
+    } else if (target.field === 'popupImage') {
+      if (!isAllowedImage) {
+        this.setFormTemplatePopupImageError(target.inst, 'Please upload only image file (jpg, jpeg, png)');
+        if (input) input.value = '';
+        this.imagePickerTarget = null;
+        return;
+      }
+    } else if (!file.type.startsWith('image/')) {
+      alert('Please upload only image file (jpg, jpeg, png)');
+      if (input) input.value = '';
+      this.imagePickerTarget = null;
+      return;
+    }
+
+    this.assignImageToInst(target.inst, target.field, file, target.formComponent);
+    if (input) input.value = '';
     this.imagePickerTarget = null;
   }
 
-  private assignImageToInst(inst: CompInstance, field: ImageField, file: File): void {
+  private assignImageToInst(inst: CompInstance, field: ImageField, file: File, formComponent?: FormComponentTemplateDto): void {
     if (!file.type.startsWith('image/')) return;
+    if (field === 'formComponentImage') {
+      if (formComponent) {
+        this.updateFormComponentImage(formComponent, file);
+      }
+      return;
+    }
     inst.props ??= {} as ComponentProps;
+    if (field === 'popupImage') {
+      this.setFormTemplatePopupImageError(inst, null);
+    }
 
     if (field === 'display_picture') {
       inst._file = file;
@@ -1062,6 +1118,122 @@ async createCategory() {
         (inst.props as Record<string, string | undefined>)[field] = url;
       }
     }
+  }
+
+  private setFormTemplatePopupImageError(inst: CompInstance, message: string | null): void {
+    inst.props ??= {} as ComponentProps;
+    const props = inst.props as Record<string, unknown>;
+    if (message) {
+      props['popupImageError'] = message;
+    } else if ("popupImageError" in props) {
+      delete props['popupImageError'];
+    }
+  }
+
+  private updateFormComponentImage(formComponent: FormComponentTemplateDto, file: File): void {
+    formComponent.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+    const model = formComponent.imageUploadWithImageContent as { image?: string; __imageError?: string | null; __pendingId?: number };
+    this.setFormComponentImageError(formComponent, null);
+    const runId = ++this.formComponentImageSerial;
+    model.image = '';
+    (model as any).__pendingId = runId;
+    this.toBase64(file)
+      .then(dataUrl => {
+        if ((model as any).__pendingId !== runId) return;
+        model.image = dataUrl;
+        delete (model as any).__pendingId;
+      })
+      .catch(() => {
+        if ((model as any).__pendingId === runId) {
+          delete (model as any).__pendingId;
+        }
+        model.image = '';
+        this.setFormComponentImageError(formComponent, 'invalidType');
+      });
+  }
+
+  private setFormComponentImageError(component: FormComponentTemplateDto | undefined, reason: 'invalidType' | 'missing' | null): void {
+    if (!component) return;
+    component.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+    const state = component.imageUploadWithImageContent as { __imageError?: string | null; __pendingId?: number };
+    if (reason) {
+      state.__imageError = reason;
+      if ((state as any).__pendingId != null) {
+        delete (state as any).__pendingId;
+      }
+    } else if (state.__imageError) {
+      delete state.__imageError;
+    }
+  }
+
+  private serializeFormComponents(list: FormComponentTemplateDto[] | null | undefined): FormComponentTemplateDto[] {
+    if (!Array.isArray(list)) {
+      return [];
+    }
+    const result: FormComponentTemplateDto[] = [];
+    for (const comp of list) {
+      if (!comp) continue;
+      const clone: FormComponentTemplateDto = { ...comp };
+      if (comp.imageUploadWithImageContent) {
+        const source = comp.imageUploadWithImageContent;
+        clone.imageUploadWithImageContent = {
+          textDesc: source.textDesc ?? '',
+          image: typeof source.image === 'string' ? source.image : '',
+        };
+      }
+      if (comp.formButton) {
+        const btn = comp.formButton;
+        clone.formButton = {
+          textOnButton: btn.textOnButton ?? 'Button',
+          isActive: btn.isActive ?? true,
+          url: btn.url ?? '',
+        };
+      }
+      if (comp.imageUpload) {
+        clone.imageUpload = { ...comp.imageUpload };
+      }
+      result.push(clone);
+    }
+    return result;
+  }
+
+  private validateFormTemplateImages(): boolean {
+    let hasError = false;
+    const inspect = (list: CompInstance[]) => {
+      for (const inst of list) {
+        const comps = inst.props?.formComponents;
+        if (!Array.isArray(comps)) continue;
+        for (const comp of comps) {
+          if (!comp || comp.isDelete) continue;
+          if (comp.componentType !== 'imageUploadWithImageContent' && !comp.imageUploadWithImageContent) continue;
+          comp.imageUploadWithImageContent ??= { textDesc: '', image: '' };
+          const state = comp.imageUploadWithImageContent as { image?: string; __imageError?: string | null };
+          if (state.__imageError === 'invalidType') {
+            hasError = true;
+            continue;
+          }
+          const image = typeof state.image === 'string' ? state.image.trim() : '';
+          if (!image) {
+            this.setFormComponentImageError(comp, 'missing');
+            hasError = true;
+          } else if (state.__imageError) {
+            this.setFormComponentImageError(comp, null);
+          }
+        }
+      }
+    };
+    inspect(this.frontComponents);
+    inspect(this.backComponents);
+    return hasError;
+  }
+
+  private isAllowedImageType(file: File): boolean {
+    const type = (file.type || '').toLowerCase();
+    if (type === 'image/jpeg' || type === 'image/png' || type === 'image/jpg') {
+      return true;
+    }
+    const name = (file.name || '').toLowerCase();
+    return name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png');
   }
   private revokeAllObjectUrls(inst?: CompInstance): void {
     if (!inst) return;
@@ -1420,6 +1592,12 @@ async createCategory() {
       return;
     }
 
+
+    if (this.validateFormTemplateImages()) {
+      setTimeout(() => document.querySelector('.form-template__field-error, .form-template__plain-field--error, .form-template__popup-image--error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      return;
+    }
+
     this.submitting = true;
 
     // Always send JSON + base64 (server expects application/json)
@@ -1666,106 +1844,6 @@ async createCategory() {
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

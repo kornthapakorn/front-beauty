@@ -1,0 +1,62 @@
+<div class="iuwc" [class.iuwc--disabled]="frozen">
+  <div class="iuwc__header">
+    <button
+      type="button"
+      class="iuwc__delete"
+      (click)="onRemove($event)"
+      [disabled]="frozen"
+      aria-label="Remove image upload with content field"
+      title="Delete"
+    >
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <div class="iuwc__panel">
+    <button
+      type="button"
+      class="iuwc__text-area"
+      (click)="openTextEdit()"
+      [disabled]="frozen"
+      aria-label="Edit description"
+      title="Edit text"
+    >
+      <span class="iuwc__text" [class.iuwc__placeholder]="!displayText">
+        {{ displayText || 'Text Here' }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="iuwc__image-box"
+      [class.iuwc__image-box--error]="showError"
+      (click)="openImagePicker($event)"
+      [disabled]="frozen"
+      aria-label="Select image"
+      title="Select image"
+      [attr.aria-invalid]="showError ? 'true' : null"
+    >
+      <ng-container *ngIf="hasImage; else iuwcPlaceholder">
+        <img [src]="imageSrc" alt="Selected image" />
+      </ng-container>
+      <ng-template #iuwcPlaceholder>
+        <img src="assets/icons/upload.png" alt="Upload image" />
+      </ng-template>
+    </button>
+
+    <div class="iuwc__error" *ngIf="showError" aria-live="polite">
+      <i class="bi bi-exclamation-circle"></i>
+      <span>Please upload only image file (jpg, jpeg, png)</span>
+    </div>
+
+    <div class="iuwc__upload" aria-hidden="true">
+      <svg class="iuwc__upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      <span class="iuwc__upload-label">Upload image</span>
+    </div>
+  </div>
+</div>
+

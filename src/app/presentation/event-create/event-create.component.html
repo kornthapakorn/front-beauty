@@ -202,6 +202,7 @@
               (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
               (saleDateChange)="onSaleDateChange($event)"
               (openFormTemplateText)="onOpenFormTemplateText($event)"
+              (openFormTemplateImage)="onOpenFormTemplateImage($event)"
             >
             </app-host-node>
           </div>
@@ -251,6 +252,7 @@
               (openSaleTextCfgForNode)="onOpenSaleTextCfgForNode($event)"
               (saleDateChange)="onSaleDateChange($event)"
               (openFormTemplateText)="onOpenFormTemplateText($event)"
+              (openFormTemplateImage)="onOpenFormTemplateImage($event)"
             ></app-host-node>
           </div>
         </li>
@@ -478,3 +480,4 @@
 <div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
   <div class="toast-body">{{ toastMessage }}</div>
 </div>
+

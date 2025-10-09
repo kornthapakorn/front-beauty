@@ -1,4 +1,4 @@
-﻿<div class="node" [class.node--section]="isSection">
+<div class="node" [class.node--section]="isSection">
   <ng-template #nodeHeader>
     <div class="node__header">
       <div class="node__title">{{ title }}</div>
@@ -140,7 +140,10 @@
         </app-grid-two-column-node>
 
         <app-form-template-node *ngSwitchCase="'formtemplate'" [node]="node" [path]="path" [frozen]="frozen"
-          (openTextForField)="openFormTemplateText.emit($event)" (openImagePicker)="openPickerForNode.emit($event)">
+          [submitAttempted]="submitAttempted"
+          (openTextForField)="openFormTemplateText.emit($event)"
+          (openImagePicker)="openPickerForNode.emit($event)"
+          (openImageForComponent)="openFormTemplateImage.emit($event)">
           <ng-container node-header>
             <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
           </ng-container>
