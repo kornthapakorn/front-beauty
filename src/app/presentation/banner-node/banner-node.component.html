@@ -30,29 +30,26 @@
         <span [class.banner__text--placeholder]="!displayText">{{ overlayText }}</span>
       </button>
 
-      <div class="banner__cta-wrapper">
-        <button
-          type="button"
-          class="banner__gear"
-          [disabled]="frozen"
-          (click)="onEditButton()"
-          aria-label="Configure banner button"
-        >
-          <i class="bi bi-gear-fill" aria-hidden="true"></i>
-        </button>
+      <button
+        type="button"
+        class="banner__gear"
+        [disabled]="frozen"
+        (click)="onEditButton()"
+        aria-label="Configure banner button"
+      >
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
 
-        <button
-          type="button"
-          class="banner__cta"
-          [class.banner__cta--inactive]="!buttonActive"
-          [disabled]="frozen"
-          (click)="onEditButton()"
-          aria-label="Edit banner button label"
-        >
-          {{ overlayButton }}
-        </button>
-      </div>
+      <button
+        type="button"
+        class="banner__cta"
+        [class.banner__cta--inactive]="!buttonActive"
+        [disabled]="frozen"
+        (click)="onEditButton()"
+        aria-label="Edit banner button label"
+      >
+        {{ overlayButton }}
+      </button>
     </div>
   </div>
 </div>
-

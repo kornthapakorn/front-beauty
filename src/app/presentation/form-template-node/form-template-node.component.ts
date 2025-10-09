@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { take } from 'rxjs';
@@ -171,11 +171,22 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
   get activeComponents(): FormComponentTemplateDto[] {
     return this.props.formComponents!.filter((c: FormComponentTemplateDto) => !c.isDelete);
   }
+
   get singleSelectionComponent(): FormComponentTemplateDto | undefined {
     return this.activeComponents.find((comp: FormComponentTemplateDto) => comp.componentType === 'singleSelection');
   }
 
+  // <CHANGE> เพิ่ม getter สำหรับ components ที่ไม่ใช่ singleSelection
+  get nonSingleSelectionComponents(): FormComponentTemplateDto[] {
+    return this.activeComponents.filter((comp: FormComponentTemplateDto) => comp.componentType !== 'singleSelection');
+  }
 
+  // <CHANGE> เพิ่ม getter สำหรับ components ที่เรียงลำดับโดยให้ singleSelection อยู่ด้านบนสุด
+  get orderedComponents(): FormComponentTemplateDto[] {
+    const single = this.singleSelectionComponent;
+    const others = this.nonSingleSelectionComponents;
+    return single ? [single, ...others] : others;
+  }
 
   openConfig(event?: Event): void {
     event?.stopPropagation();
@@ -194,6 +205,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     this.componentsMenuOpen = false;
     this.configSubmitAttempted = false;
   }
+
   saveConfig(): void {
     if (this.frozen) return;
     this.configSubmitAttempted = true;
@@ -202,7 +214,6 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.closeConfig();
   }
-
 
   togglePalette(): void {
     if (this.frozen) return;
@@ -219,11 +230,10 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     this.componentsMenuOpen = false;
   }
 
-  removeComponent(index: number): void {
-    const list = this.activeComponents;
-    const target = list[index];
-    if (!target) return;
-    const original = this.props.formComponents!.find((c: FormComponentTemplateDto) => c.id === target.id);
+  // <CHANGE> แก้ไข removeComponent ให้รับ component โดยตรงแทนที่จะเป็น index
+  removeComponent(comp: FormComponentTemplateDto): void {
+    if (!comp) return;
+    const original = this.props.formComponents!.find((c: FormComponentTemplateDto) => c.id === comp.id);
     if (!original) return;
     if (original.id > 0) {
       original.isDelete = true;
@@ -237,10 +247,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.singleSelectionComponent) {
       return;
     }
-    const index = this.activeComponents.findIndex((comp: FormComponentTemplateDto) => comp.id === this.singleSelectionComponent!.id);
-    if (index >= 0) {
-      this.removeComponent(index);
-    }
+    this.removeComponent(this.singleSelectionComponent);
   }
 
   regenerateSlug(): void {
@@ -325,6 +332,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
       component: comp
     });
   }
+
   openBirthDateField(comp: FormComponentTemplateDto, event?: Event): void {
     if (event) {
       event.stopPropagation();
@@ -400,6 +408,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     comp.date ??= { text: '' };
     return true;
   }
+
   ensureBirthDate(comp: FormComponentTemplateDto): boolean {
     comp.birthDate ??= { label: '' };
     return true;
@@ -414,6 +423,7 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     comp.imageUpload ??= { text: '' };
     return true;
   }
+
   ensureImageUploadWithContent(comp: FormComponentTemplateDto): boolean {
     comp.imageUploadWithImageContent ??= { textDesc: '', image: '' };
     return true;
@@ -429,7 +439,6 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
     const image = typeof model.image === 'string' ? model.image.trim() : '';
     return image.length === 0;
   }
-
 
   private ensureProps(): void {
     this.props.formComponents ??= [];
@@ -465,9 +474,3 @@ export class FormTemplateNodeComponent implements OnInit, OnChanges, OnDestroy {
       });
   }
 }
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-<div class="form-template">
+﻿<div class="form-template">
   <div class="form-template__header">
     <ng-content select="[node-header]"></ng-content>
   </div>
@@ -58,43 +58,48 @@
 
         <div class="form-template__components-header">
           <div class="form-template__components">
-            <ng-container *ngFor="let comp of activeComponents; let i = index; trackBy: trackByComponent">
+            <ng-container *ngFor="let comp of orderedComponents; trackBy: trackByComponent">
               <ng-container [ngSwitch]="comp.componentType">
-                <ng-container *ngSwitchCase="'singleSelection'"></ng-container>
+                <app-single-selection-node
+                  *ngSwitchCase="'singleSelection'"
+                  [component]="comp"
+                  [frozen]="frozen"
+                  (remove)="removeComponent(comp)"
+                ></app-single-selection-node>
                 <app-text-field-node
                   *ngSwitchCase="'textField'"
                   [component]="comp"
                   [frozen]="frozen"
                   (edit)="openTextField(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-text-field-node>
                 <app-date-node
                   *ngSwitchCase="'date'"
                   [component]="comp"
                   [frozen]="frozen"
                   (edit)="openDateField(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-date-node>
                 <app-birth-date-node
                   *ngSwitchCase="'birthDate'"
                   [component]="comp"
                   [frozen]="frozen"
                   (edit)="openBirthDateField(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-birth-date-node>
                 <app-image-upload-node
                   *ngSwitchCase="'imageUpload'"
                   [component]="comp"
                   [frozen]="frozen"
                   (edit)="openImageUploadField(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-image-upload-node>
                 <app-form-button-node
                   *ngSwitchCase="'formButton'"
                   [component]="comp"
                   [frozen]="frozen"
                   (edit)="openFormButtonText(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-form-button-node>
                 <app-image-upload-with-content-node
                   *ngSwitchCase="'imageUploadWithImageContent'"
@@ -103,11 +108,11 @@
                   [showError]="shouldShowImageContentError(comp)"
                   (edit)="openImageUploadWithContentText(comp)"
                   (pickImage)="openImageUploadWithContentImage(comp)"
-                  (remove)="removeComponent(i)"
+                  (remove)="removeComponent(comp)"
                 ></app-image-upload-with-content-node>
                 <div *ngSwitchDefault class="form-template__component">
                   <span>{{ getComponentLabel(comp.componentType) }}</span>
-                  <button type="button" (click)="removeComponent(i)" [disabled]="frozen" aria-label="Remove component">
+                  <button type="button" (click)="removeComponent(comp)" [disabled]="frozen" aria-label="Remove component">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -115,14 +120,6 @@
             </ng-container>
           </div>
           <div class="form-template__components-actions">
-            <ng-container *ngIf="singleSelectionComponent as singleSelection">
-              <app-single-selection-node
-                class="form-template__single-trigger"
-                [component]="singleSelection"
-                [frozen]="frozen"
-                (remove)="removeSingleSelection()"
-              ></app-single-selection-node>
-            </ng-container>
             <button
               type="button"
               class="form-template__fab"
@@ -156,7 +153,7 @@
               <img [src]="props.popupImage" alt="Popup preview" />
             </ng-container>
             <ng-template #popupPlaceholder>
-              <img src="assets/icons/upload.png">
+              <img src="assets/icons/upload.png" alt="Upload image">
             </ng-template>
           </button>
           <div class="form-template__field-error" *ngIf="popupImageErrorMessage" aria-live="polite">
@@ -226,4 +223,3 @@
     </div>
   </div>
 </div>
-

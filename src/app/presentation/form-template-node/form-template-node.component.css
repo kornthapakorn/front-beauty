@@ -53,6 +53,9 @@
 .form-template__modal-panel {
   position: relative;
   width: min(480px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 24px 40px rgba(15, 23, 42, 0.2);
@@ -72,13 +75,29 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  z-index: 1;
 }
 
 .form-template__modal-card {
+  flex: 1;
+  overflow-y: auto;
   padding: 32px 28px 36px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.form-template__modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-template__modal-card::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+}
+
+.form-template__modal-card::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .form-template__group {
@@ -189,7 +208,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
 
 .form-template__popup-image {
   border: 1px dashed #94a3b8;
@@ -355,7 +373,7 @@
   padding: 18px 20px;
   box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  font-family: 'Judson', serif;
+  font-family: "Judson", serif;
 }
 
 .form-template__palette-card-title {
@@ -499,6 +517,7 @@
   font-weight: 600;
   cursor: pointer;
 }
+
 .form-template__actions-row {
   display: flex;
   align-items: center;
@@ -521,16 +540,8 @@
 }
 
 .form-template__gear[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-.form-template__gear[disabled] {
   opacity: 0.4;
 }
-
-
-
 
 .form-template__components-actions {
   display: flex;

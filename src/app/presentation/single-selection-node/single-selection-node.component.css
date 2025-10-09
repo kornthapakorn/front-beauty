@@ -1,9 +1,9 @@
 .single-selection-node {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
+  position: relative;
 }
 
 .single-selection-node--disabled {
@@ -11,85 +11,76 @@
   pointer-events: none;
 }
 
-.single-selection-node__chips {
-  flex: 1;
+/* เพิ่ม header section สำหรับวาง gear icon ที่มุมขวาบน */
+.single-selection-node__header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  justify-content: flex-end;
   align-items: center;
-  min-height: 32px;
+  min-height: 36px;
 }
 
+.single-selection-node__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  min-height: 40px;
+}
+
+/* เปลี่ยนสไตล์ chip ให้เป็นแบบ outlined pill-style ตามภาพที่ต้องการ */
 .single-selection-node__chip {
-  padding: 6px 12px;
+  padding: 10px 20px;
   border-radius: 999px;
-  border: 1px solid #1f2937;
+  border: 2px solid #1f2937;
   background: #ffffff;
   color: #1f2937;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.single-selection-node__chip:hover {
+  border-color: #374151;
+  background: #f9fafb;
 }
 
 .single-selection-node__chip--blank {
-  min-width: 48px;
-  min-height: 28px;
-  border: 1px solid #94a3b8;
-  border-radius: 8px;
+  min-width: 60px;
+  min-height: 36px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 999px;
   background: transparent;
-  padding: 0;
+  padding: 10px 20px;
 }
 
 .single-selection-node__actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.single-selection-node__add {
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 1.8rem;
-  font-weight: 600;
-  line-height: 1;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.single-selection-node__add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.45);
+/* ลบปุ่ม add ออก เพราะไม่มีในดีไซน์ใหม่ */
+.single-selection-node__add {
+  display: none;
 }
 
-.single-selection-node__add[disabled] {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
+/* ปรับสไตล์ gear icon ให้เรียบง่ายขึ้น */
 .single-selection-node__gear {
   border: none;
   background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   transition: transform 0.15s ease;
+  padding: 0;
 }
 
 .single-selection-node__gear:hover {
-  transform: translateY(-1px);
+  transform: scale(1.1);
 }
 
 .single-selection-node__gear[disabled] {
@@ -99,8 +90,8 @@
 }
 
 .single-selection-node__gear img {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
@@ -296,7 +287,3 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-
-
-

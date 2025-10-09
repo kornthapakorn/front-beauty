@@ -1,4 +1,16 @@
 <div class="single-selection-node" [class.single-selection-node--disabled]="frozen">
+  <div class="single-selection-node__header">
+    <button
+      type="button"
+      class="single-selection-node__gear"
+      (click)="openConfig($event)"
+      [disabled]="frozen"
+      aria-label="Configure single selection options"
+    >
+      <img src="assets/icons/gear.png" alt="Configure single selection" />
+    </button>
+  </div>
+  
   <div class="single-selection-node__chips">
     <span
       class="single-selection-node__chip"
@@ -9,15 +21,7 @@
     </span>
   </div>
   <div class="single-selection-node__actions">
-    <button
-      type="button"
-      class="single-selection-node__gear"
-      (click)="openConfig($event)"
-      [disabled]="frozen"
-      aria-label="Configure single selection options"
-    >
-      <img src="assets/icons/gear.png" alt="Configure single selection" />
-    </button>
+    <!-- Additional actions can be placed here if needed -->
   </div>
 </div>
 
@@ -93,4 +97,3 @@
     </div>
   </div>
 </div>
-
