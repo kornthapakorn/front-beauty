@@ -7,6 +7,8 @@ import { CreateEventComponent } from './presentation/event-create/event-create.c
 //import { EventListComponent } from './presentation/event-list/event-list.component';
 import { ManageEventComponent } from './presentation/manage-event/manage-event.component';
 import { authGuard } from './core/guards/auth.guard';
+import { CreateFullEventComponent } from './presentation/create-full-event.component/create-full-event.component.component';
+
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full', canActivate: [authGuard] },
@@ -15,6 +17,8 @@ export const routes: Routes = [
   { path: 'Login', component: LoginEventComponent },
   { path: 'event-create', component: CreateEventComponent, canActivate: [authGuard] },
   { path: 'create-event', component: CreateEventComponent, canActivate: [authGuard] },
+
+  { path: 'event-create-full', component: CreateFullEventComponent},
 
  // { path: 'events', component: EventListComponent },
   { path: 'events/:id', component: EventDetailComponent, canActivate: [authGuard] },

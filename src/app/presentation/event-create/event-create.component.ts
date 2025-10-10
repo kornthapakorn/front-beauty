@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { EventService } from '../../domain/event.service';
+import { EventpService } from '../../domain/eventp.service';
 import { EventCreateDto } from '../../models/event.model';
 import { EventComponentDto } from '../../models/event-component.model';
 import { ComponentDto } from '../../models/component.model';
@@ -89,6 +89,7 @@ type CompInstance = {
 };
 
 type NodeMutationEvent = { path: number[]; index: number };
+type FileEntry = { key: string; file: File };
 
 type EventDraft = {
   form?: { endDate?: string; name?: string; isFav?: boolean };
@@ -204,7 +205,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private events: EventService,
+    private eventp: EventpService,
     private categoriesApi: CategoryService
   ) {}
 
@@ -966,7 +967,7 @@ async createCategory() {
 
     return list.map((inst, idx) => {
       const { blocks, componentType } = this.buildComponentBlocks(inst);
-      const dto: EventComponentDto & { children?: EventComponentDto[] } = {
+      const dto: EventComponentDto = {
         id: inst.comp?.componentId ?? 0,
         componentType,
         sortOrder: idx + 1,
@@ -975,8 +976,10 @@ async createCategory() {
       };
 
       const children = inst.props?.children;
-      if (Array.isArray(children) && children.length) {
-        dto.children = this.buildPreviewTree(children);
+      const normalized = this.normalizeType(componentType);
+      if (normalized === 'section') {
+        const nested = Array.isArray(children) && children.length ? this.buildPreviewTree(children) : [];
+        dto.section = { components: nested };
       }
 
       return dto;
@@ -1427,21 +1430,18 @@ async createCategory() {
       const components = Array.isArray((p as any).formComponents)
         ? (p as any).formComponents
             .filter((comp: FormComponentTemplateDto | null | undefined) => !!comp)
-            .map((comp: FormComponentTemplateDto) => ({ ...comp }))
+            .map((comp: FormComponentTemplateDto) => {
+              const normalizedType = this.normalizeType(comp.componentType);
+              return { ...comp, componentType: normalizedType as FormComponentTemplateDto['componentType'] };
+            })
         : [];
-      const url = this.coerceString((p as any).formSlug);
-      const templateId = (p as any).formTemplateId;
       blocks.formTemplate = {
         topic: this.coerceString(p.topic),
         textOnButton: this.coerceString(p.textOnButton),
         popupImage: this.coerceString(p.popupImage),
         popupText: this.coerceString(p.popupText),
-        url,
         components
       };
-      if (templateId != null) {
-        (blocks.formTemplate as any).formTemplateId = templateId;
-      }
     }
     if (t === 'onetopicimagecaptionbutton') {
       blocks.oneTopicImageCaptionButton = {
@@ -1497,75 +1497,158 @@ async createCategory() {
       };
     }
     if (t === 'section') {
-      blocks.section = {};
+      blocks.section = { components: [] };
     }
 
     return { blocks, componentType: t };
   }
 
-  private async serializeListForSchema(list: CompInstance[], isOutPage: boolean) {
-    const result: EventComponentDto[] = [];
-    for (let i = 0; i < list.length; i++) {
-      result.push(await this.serializeOneForSchema(list[i], i + 1, isOutPage));
+
+  private async serializeListForSchema(list: CompInstance[], isOutPage: boolean, baseKey: string, startIndex = 0): Promise<{ components: EventComponentDto[]; files: FileEntry[] }> {
+    const components: EventComponentDto[] = [];
+    const files: FileEntry[] = [];
+    if (!Array.isArray(list) || !list.length) {
+      return { components, files };
     }
-    return result;
+
+    for (let i = 0; i < list.length; i++) {
+      const prefix = `${baseKey}[${startIndex + i}]`;
+      const { dto, files: collected } = await this.serializeOneForSchema(list[i], i + 1, isOutPage, prefix);
+      components.push(dto);
+      files.push(...collected);
+    }
+
+    return { components, files };
   }
 
-  private async serializeOneForSchema(inst: CompInstance, sortOrder: number, isOutPage: boolean): Promise<EventComponentDto> {
+  private async serializeOneForSchema(inst: CompInstance, sortOrder: number, isOutPage: boolean, keyPrefix: string): Promise<{ dto: EventComponentDto; files: FileEntry[] }> {
     const { blocks, componentType } = this.buildComponentBlocks(inst);
-
-    if (inst._file) {
-      const b64 = await this.toBase64(inst._file);
-      if (blocks.banner) blocks.banner.image = b64;
-      if (blocks.imageWithCaption) blocks.imageWithCaption.image = b64;
-      if (blocks.imageDesc) blocks.imageDesc.image = b64;
-      if (blocks.oneTopicImageCaptionButton && !blocks.oneTopicImageCaptionButton.image) blocks.oneTopicImageCaptionButton.image = b64;
-      if (blocks.aboutU && !blocks.aboutU.imageTopic) blocks.aboutU.imageTopic = b64;
-      if (blocks.gridTwoColumn) blocks.gridTwoColumn.leftImage = b64; // default ???????
-      if (blocks.gridFourImage && !blocks.gridFourImage.image1) blocks.gridFourImage.image1 = b64;
-    }
-    if (inst._fileMap) {
-      for (const [field, file] of Object.entries(inst._fileMap)) {
-        const b64 = await this.toBase64(file);
-        switch (field) {
-          case 'leftImage':
-            if (blocks.gridTwoColumn) blocks.gridTwoColumn.leftImage = b64;
-            if (blocks.aboutU) blocks.aboutU.leftImage = b64;
-            if (blocks.sale) blocks.sale.leftImage = b64;
-            if (blocks.twoTopicImageCaptionButton) blocks.twoTopicImageCaptionButton.leftImage = b64;
-            break;
-          case 'rightImage':
-            if (blocks.gridTwoColumn) blocks.gridTwoColumn.rightImage = b64;
-            if (blocks.aboutU) blocks.aboutU.rightImage = b64;
-            if (blocks.sale) blocks.sale.rightImage = b64;
-            if (blocks.twoTopicImageCaptionButton) blocks.twoTopicImageCaptionButton.rightImage = b64;
-            break;
-          case 'image1':
-            if (blocks.gridFourImage) blocks.gridFourImage.image1 = b64;
-            break;
-          case 'image2':
-            if (blocks.gridFourImage) blocks.gridFourImage.image2 = b64;
-            break;
-          case 'image3':
-            if (blocks.gridFourImage) blocks.gridFourImage.image3 = b64;
-            break;
-          case 'image4':
-            if (blocks.gridFourImage) blocks.gridFourImage.image4 = b64;
-            break;
-          case 'popupImage':
-            if (blocks.formTemplate) blocks.formTemplate.popupImage = b64;
-            break;
-        }
-      }
-    }
-
-    return {
-      id: 0,
-      componentType,
+    const normalizedComponentType = (componentType || '').toLowerCase();
+    const dto: EventComponentDto = {
+      id: inst.comp?.componentId ?? 0,
+      componentType: normalizedComponentType,
       sortOrder,
       isOutPage,
       ...blocks
-    } as EventComponentDto;
+    };
+
+    const files: FileEntry[] = [];
+
+    if (normalizedComponentType === 'section') {
+      const children = (inst.props?.children ?? []) as CompInstance[];
+      const { components: nested, files: nestedFiles } = await this.serializeListForSchema(children, isOutPage, `${keyPrefix}.section.components`);
+      dto.section = { components: nested };
+      files.push(...nestedFiles);
+    }
+
+    files.push(...this.collectFilesForComponent(inst, normalizedComponentType, keyPrefix, dto));
+    this.stripBlobUrlsFromDto(dto);
+
+    return { dto, files };
+  }
+
+
+  private collectFilesForComponent(inst: CompInstance, type: string, keyPrefix: string, dto: EventComponentDto): FileEntry[] {
+    const entries: FileEntry[] = [];
+    if (inst._file) {
+      const suffix = this.resolvePrimaryImageKey(type);
+      if (suffix) {
+        this.clearDtoImageValue(dto, suffix);
+        entries.push({ key: `${keyPrefix}.${suffix}`, file: inst._file });
+      }
+    }
+    if (inst._fileMap) {
+      for (const [field, file] of Object.entries(inst._fileMap)) {
+        const suffix = this.resolveMappedImageKey(type, field);
+        if (!suffix) continue;
+        this.clearDtoImageValue(dto, suffix);
+        entries.push({ key: `${keyPrefix}.${suffix}`, file });
+      }
+    }
+    return entries;
+  }
+
+  private resolvePrimaryImageKey(type: string): string | null {
+    switch (type) {
+      case 'banner': return 'banner.image';
+      case 'imagewithcaption': return 'imageWithCaption.image';
+      case 'imagedesc': return 'imageDesc.image';
+      case 'onetopicimagecaptionbutton': return 'oneTopicImageCaptionButton.image';
+      case 'aboutu': return 'aboutU.imageTopic';
+      default: return null;
+    }
+  }
+
+  private resolveMappedImageKey(type: string, field: string): string | null {
+    switch (field) {
+      case 'leftImage':
+        if (type === 'gridtwocolumn') return 'gridTwoColumn.leftImage';
+        if (type === 'twotopicimagecaptionbutton') return 'twoTopicImageCaptionButton.leftImage';
+        if (type === 'sale') return 'sale.leftImage';
+        if (type === 'aboutu') return 'aboutU.leftImage';
+        return null;
+      case 'rightImage':
+        if (type === 'gridtwocolumn') return 'gridTwoColumn.rightImage';
+        if (type === 'twotopicimagecaptionbutton') return 'twoTopicImageCaptionButton.rightImage';
+        if (type === 'sale') return 'sale.rightImage';
+        if (type === 'aboutu') return 'aboutU.rightImage';
+        return null;
+      case 'image1':
+        return type === 'gridfourimage' ? 'gridFourImage.image1' : null;
+      case 'image2':
+        return type === 'gridfourimage' ? 'gridFourImage.image2' : null;
+      case 'image3':
+        return type === 'gridfourimage' ? 'gridFourImage.image3' : null;
+      case 'image4':
+        return type === 'gridfourimage' ? 'gridFourImage.image4' : null;
+      case 'popupImage':
+        return type === 'formtemplate' ? 'formTemplate.popupImage' : null;
+      default:
+        return null;
+    }
+  }
+
+  private clearDtoImageValue(dto: EventComponentDto, path: string): void {
+    const segments = path.split('.');
+    let target: any = dto;
+    for (let i = 0; i < segments.length - 1; i++) {
+      const seg = segments[i];
+      if (typeof target[seg] !== 'object' || target[seg] === null) {
+        target[seg] = {};
+      }
+      target = target[seg];
+    }
+    const last = segments[segments.length - 1];
+    const current = target[last];
+    if (typeof current === 'string' && current.startsWith('blob:')) {
+      target[last] = '';
+    } else if (current == null) {
+      target[last] = '';
+    }
+  }
+
+  private stripBlobUrlsFromDto(value: unknown): void {
+    if (!value) return;
+    if (Array.isArray(value)) {
+      value.forEach(item => this.stripBlobUrlsFromDto(item));
+      return;
+    }
+    if (typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      for (const key of Object.keys(record)) {
+        const current = record[key];
+        if (typeof current === 'string' && current.startsWith('blob:')) {
+          record[key] = '';
+        } else {
+          this.stripBlobUrlsFromDto(current);
+        }
+      }
+    }
+  }
+
+  private sanitizeImageValue(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.startsWith('blob:') ? '' : value;
   }
 
   /** ---------- SAVE ---------- */
@@ -1600,28 +1683,41 @@ async createCategory() {
 
     this.submitting = true;
 
-    // Always send JSON + base64 (server expects application/json)
-    const front = await this.serializeListForSchema(this.frontComponents, false);
-    const back = await this.serializeListForSchema(this.backComponents, true);
-    const components: EventComponentDto[] = [...front, ...back];
+    const frontResult = await this.serializeListForSchema(this.frontComponents, false, 'components');
+    const backResult = await this.serializeListForSchema(this.backComponents, true, 'components', frontResult.components.length);
+    const components: EventComponentDto[] = [...frontResult.components, ...backResult.components];
+    const fileEntries: FileEntry[] = [...frontResult.files, ...backResult.files];
 
     const dtoJson: EventCreateDto = {
       name,
       isFavorite: isFav,
-      fileImage: this.bannerFile ? await this.toBase64(this.bannerFile) : '',
+      fileImage: this.bannerFile ? '' : this.sanitizeImageValue(this.bannerUrl),
       endDate: this.toLocalEndDateString(endDate),
       categoryIds: this.categories.filter(c => c.selected).map(c => c.id),
       components
     };
 
-    this.events.create(dtoJson).subscribe({
+    const formData = new FormData();
+    formData.append('eventDto', JSON.stringify(dtoJson));
+    if (this.bannerFile) {
+      formData.append('event.fileImage', this.bannerFile, this.bannerFile.name);
+    }
+    for (const { key, file } of fileEntries) {
+      formData.append(key, file, file.name);
+    }
+
+    this.eventp.createFull(formData).subscribe({
       next: () => {
         this.submitting = false;
         this.clearDraft();
         this.submitAttempted = false;
         this.showToast('Created event successfully');
       },
-      error: (err: unknown) => { this.submitting = false; const message = (err as { error?: string })?.error ?? 'Create failed'; alert(message); }
+      error: (err: unknown) => {
+        this.submitting = false;
+        const message = (err as { error?: string })?.error ?? 'Create failed';
+        alert(message);
+      }
     });
   }
 
@@ -1844,8 +1940,4 @@ async createCategory() {
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
-
-
-
-
 

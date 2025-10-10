@@ -23,14 +23,35 @@
 <ng-template #renderBlock let-comp>
   <ng-container [ngSwitch]="typeOf(comp)">
     <section *ngSwitchCase="'banner'" class="preview-block preview-block--banner">
-      <div class="banner-block">
-        <img *ngIf="comp.banner?.image" [src]="comp.banner?.image" alt="Banner image" />
-        <div class="banner-block__content">
-          <p class="banner-block__text" *ngIf="hasContent(comp.banner?.textDesc)">{{ comp.banner?.textDesc }}</p>
-          <a *ngIf="hasContent(comp.banner?.textOnButton) && comp.banner?.isActive"
-             class="banner-block__button" [href]="comp.banner?.urlButton || '#'" target="_blank" rel="noopener">
-            {{ comp.banner?.textOnButton }}
-          </a>
+      <div class="preview-banner" [class.preview-banner--has-image]="comp.banner?.image">
+        <ng-container *ngIf="comp.banner?.image; else bannerImagePlaceholder">
+          <div class="preview-banner__background" [style.background-image]="'url(' + comp.banner?.image + ')'" ></div>
+        </ng-container>
+        <ng-template #bannerImagePlaceholder>
+          <div class="preview-banner__placeholder" aria-label="Banner image placeholder">
+            <span>Banner image</span>
+          </div>
+        </ng-template>
+
+        <div class="preview-banner__overlay">
+          <p class="preview-banner__text" [class.preview-banner__text--placeholder]="!hasContent(comp.banner?.textDesc)">
+            {{ comp.banner?.textDesc || 'Text here' }}
+          </p>
+
+          <ng-container *ngIf="hasContent(comp.banner?.textOnButton); else bannerCtaPlaceholder">
+            <a
+              class="preview-banner__cta"
+              [class.preview-banner__cta--inactive]="comp.banner && !comp.banner.isActive"
+              [href]="comp.banner?.urlButton || '#'"
+              target="_blank"
+              rel="noopener"
+            >
+              {{ comp.banner?.textOnButton }}
+            </a>
+          </ng-container>
+          <ng-template #bannerCtaPlaceholder>
+            <span class="preview-banner__cta preview-banner__cta--placeholder">Text here</span>
+          </ng-template>
         </div>
       </div>
     </section>
@@ -56,37 +77,71 @@
     </section>
 
     <section *ngSwitchCase="'gridtwocolumn'" class="preview-block preview-block--grid-two">
-      <div class="grid-two">
-        <div class="grid-two__col">
-          <img *ngIf="comp.gridTwoColumn?.leftImage" [src]="comp.gridTwoColumn?.leftImage" alt="" />
-          <p *ngIf="hasContent(comp.gridTwoColumn?.leftText)">{{ comp.gridTwoColumn?.leftText }}</p>
-          <a *ngIf="hasContent(comp.gridTwoColumn?.leftUrl)" [href]="comp.gridTwoColumn?.leftUrl" target="_blank" rel="noopener">Learn more</a>
+      <div class="preview-grid-two">
+        <div class="preview-grid-two__card">
+          <ng-container *ngIf="comp.gridTwoColumn?.leftImage; else leftGridTwoPlaceholder">
+            <img [src]="comp.gridTwoColumn?.leftImage" alt="Left grid image" class="preview-grid-two__image" />
+          </ng-container>
+          <ng-template #leftGridTwoPlaceholder>
+            <div class="preview-grid-two__image preview-grid-two__image--placeholder">Left image</div>
+          </ng-template>
+          <p class="preview-grid-two__caption" [class.preview-grid-two__caption--placeholder]="!hasContent(comp.gridTwoColumn?.leftText)">
+            {{ comp.gridTwoColumn?.leftText || 'Text here' }}
+          </p>
+          <a
+            *ngIf="hasContent(comp.gridTwoColumn?.leftUrl)"
+            class="preview-grid-two__link"
+            [href]="comp.gridTwoColumn?.leftUrl"
+            target="_blank"
+            rel="noopener"
+          >
+            View details
+          </a>
         </div>
-        <div class="grid-two__col">
-          <img *ngIf="comp.gridTwoColumn?.rightImage" [src]="comp.gridTwoColumn?.rightImage" alt="" />
-          <p *ngIf="hasContent(comp.gridTwoColumn?.rightText)">{{ comp.gridTwoColumn?.rightText }}</p>
-          <a *ngIf="hasContent(comp.gridTwoColumn?.rightUrl)" [href]="comp.gridTwoColumn?.rightUrl" target="_blank" rel="noopener">Learn more</a>
+        <div class="preview-grid-two__card">
+          <ng-container *ngIf="comp.gridTwoColumn?.rightImage; else rightGridTwoPlaceholder">
+            <img [src]="comp.gridTwoColumn?.rightImage" alt="Right grid image" class="preview-grid-two__image" />
+          </ng-container>
+          <ng-template #rightGridTwoPlaceholder>
+            <div class="preview-grid-two__image preview-grid-two__image--placeholder">Right image</div>
+          </ng-template>
+          <p class="preview-grid-two__caption" [class.preview-grid-two__caption--placeholder]="!hasContent(comp.gridTwoColumn?.rightText)">
+            {{ comp.gridTwoColumn?.rightText || 'Text here' }}
+          </p>
+          <a
+            *ngIf="hasContent(comp.gridTwoColumn?.rightUrl)"
+            class="preview-grid-two__link"
+            [href]="comp.gridTwoColumn?.rightUrl"
+            target="_blank"
+            rel="noopener"
+          >
+            View details
+          </a>
         </div>
       </div>
     </section>
 
     <section *ngSwitchCase="'gridfourimage'" class="preview-block preview-block--grid-four">
-      <div class="grid-four">
-        <img *ngIf="comp.gridFourImage?.image1" [src]="comp.gridFourImage?.image1" alt="" />
-        <img *ngIf="comp.gridFourImage?.image2" [src]="comp.gridFourImage?.image2" alt="" />
-        <img *ngIf="comp.gridFourImage?.image3" [src]="comp.gridFourImage?.image3" alt="" />
-        <img *ngIf="comp.gridFourImage?.image4" [src]="comp.gridFourImage?.image4" alt="" />
+      <div class="preview-grid-four">
+        <div class="preview-grid-four__cell" *ngFor="let field of ['image1', 'image2', 'image3', 'image4']; let idx = index">
+          <ng-container *ngIf="comp.gridFourImage?.[field]; else gridFourPlaceholder">
+            <img [src]="comp.gridFourImage?.[field]" [alt]="'Grid image ' + (idx + 1)" />
+          </ng-container>
+          <ng-template #gridFourPlaceholder>
+            <div class="preview-grid-four__placeholder">Image {{ idx + 1 }}</div>
+          </ng-template>
+        </div>
       </div>
     </section>
 
     <section *ngSwitchCase="'section'" class="preview-block preview-block--section">
       <div class="section-block">
         <div class="section-block__label">
-          {{ comp.children?.length ? 'preview section+component' : 'preview section' }}
+          {{ comp.section?.components?.length ? 'preview section+component' : 'preview section' }}
         </div>
-        <ng-container *ngIf="comp.children?.length; else emptySectionBlock">
+        <ng-container *ngIf="comp.section?.components?.length; else emptySectionBlock">
           <div class="section-block__children">
-            <ng-container *ngFor="let child of comp.children; trackBy: trackBySortOrder">
+            <ng-container *ngFor="let child of comp.section?.components || []; trackBy: trackBySortOrder">
               <ng-container *ngTemplateOutlet="renderBlock; context: { $implicit: child }"></ng-container>
             </ng-container>
           </div>
@@ -204,16 +259,6 @@
         </div>
 
         <div class="form-preview__field">
-          <label>URL:</label>
-          <div class="form-preview__input-row">
-            <input type="text" readonly [value]="comp.formTemplate?.url || ''" />
-            <span class="form-preview__icon" aria-hidden="true">
-              <i class="bi bi-clipboard"></i>
-            </span>
-          </div>
-        </div>
-
-        <div class="form-preview__field">
           <label>Topic:</label>
           <input type="text" readonly [value]="comp.formTemplate?.topic || 'Text Here'" />
         </div>
@@ -251,16 +296,6 @@
 
         <div class="form-preview__divider"></div>
 
-        <div class="form-preview__field">
-          <label>URL:</label>
-          <div class="form-preview__input-row">
-            <input type="text" readonly [value]="comp.formTemplate?.url || ''" />
-            <span class="form-preview__icon" aria-hidden="true">
-              <i class="bi bi-clipboard"></i>
-            </span>
-          </div>
-        </div>
-
         <div class="form-preview__footer">
           <button type="button" class="form-preview__save" aria-label="Save form template">
             Save &amp; Exit
@@ -275,5 +310,4 @@
     </section>
   </ng-container>
 </ng-template>
-
 

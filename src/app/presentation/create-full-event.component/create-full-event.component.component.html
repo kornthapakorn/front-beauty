@@ -1,0 +1,113 @@
+<div class="card" style="max-width:720px;margin:auto;padding:16px;">
+    <h2>Create Event (Banner + Image)</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+        <fieldset>
+            <legend>Event</legend>
+
+            <label>Event Name *</label>
+            <input type="text" formControlName="name" class="input" />
+
+            <label>End Date</label>
+            <input type="date" formControlName="endDate" class="input" />
+
+            <label>
+                <input type="checkbox" formControlName="isFavorite" />
+                Favorite
+            </label>
+
+            <label>Cover Image</label>
+            <input type="file" accept="image/*" (change)="onCoverSelected($event)" />
+        </fieldset>
+
+        <fieldset style="margin-top:16px;">
+            <legend>Banner</legend>
+
+            <label>Text Desc</label>
+            <input type="text" formControlName="banner_textDesc" class="input" />
+
+            <label>Text On Button</label>
+            <input type="text" formControlName="banner_textOnButton" class="input" />
+
+            <label>URL Button</label>
+            <input type="text" formControlName="banner_urlButton" class="input" />
+
+            <label>
+                <input type="checkbox" formControlName="banner_isActive" />
+                Active
+            </label>
+
+            <label>Banner Image</label>
+            <input type="file" accept="image/*" (change)="onBannerSelected($event)" />
+        </fieldset>
+
+        <button type="submit" [disabled]="isSubmitting" style="margin-top:16px;">
+            {{ isSubmitting ? 'Saving...' : 'Save' }}
+        </button>
+    </form>
+
+    <p style="margin-top:12px;color:#0a6;">
+        {{ resultMsg }}
+    </p>
+</div>
+
+<style>
+    .input {
+        width: 100%;
+        margin: 4px 0 12px;
+        padding: 8px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    legend {
+        padding: 0 6px;
+    }
+
+    .card {
+        border: 1px solid #eee;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    }
+</style>
+<!-- ฟอร์มของคุณ (เหมือนเดิม) ... -->
+
+<hr style="margin:24px 0" />
+
+<h3 style="margin:0 0 12px">Events (ภาพ + ชื่อ)</h3>
+<div *ngIf="!events?.length" style="color:#888">ยังไม่มีอีเวนต์</div>
+
+<div class="ev-grid" *ngIf="events?.length">
+  <div class="ev-card" *ngFor="let e of events">
+    <div class="thumb">
+      <img [src]="imgUrl(e)" (error)="onImgErr($event)" [alt]="e.name" />
+    </div>
+    <div class="name">{{ e.name }}</div>
+  </div>
+</div>
+
+<style>
+  .ev-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap:12px;
+  }
+  .ev-card{
+    border:1px solid #eee;
+    border-radius:10px;
+    padding:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,.05);
+    background:#fff;
+  }
+  .thumb{
+    width:100%; height:120px; overflow:hidden; border-radius:8px;
+    background:#f6f6f6;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .name{ margin-top:8px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+</style>

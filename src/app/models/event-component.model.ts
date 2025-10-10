@@ -5,7 +5,6 @@ export interface EventComponentDto {
   componentType: string;
   sortOrder: number;
   isOutPage: boolean;
-  children?: EventComponentDto[];
 
   aboutU?: AboutUDto;
   banner?: BannerDto;
@@ -54,7 +53,6 @@ export interface FormTemplateDto {
   textOnButton?: string;
   popupImage?: string;
   popupText?: string;
-  url?: string;
   components: FormComponentTemplateDto[];
 }
 
@@ -110,7 +108,9 @@ export interface SaleDto {
   url?: string;
 }
 
-export interface SectionDto {}
+export interface SectionDto {
+  components: EventComponentDto[];
+}
 
 export interface TableWithTopicAndDescDto {
   title?: string;
@@ -135,5 +135,4 @@ export interface TwoTopicImageCaptionButtonDto {
   rightIsActive: boolean;
   rightUrl?: string;
 }
-
 
