@@ -4,12 +4,17 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class EventpService {
-  private readonly apiUrl = 'https://localhost:7091/api/Eventp';
+    private readonly apiUrl = 'https://localhost:7091/api/Eventp';
 
-  constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
-  createFull(form: FormData): Observable<{ eventId: number }> {
-    return this.http.post<{ eventId: number }>(`${this.apiUrl}/create-full`, form);
-    // form ต้องมี field: eventDto (JSON string) + รูปไฟล์ตาม key
-  }
+    createFull(form: FormData): Observable<{ eventId: number }> {
+        return this.http.post<{ eventId: number }>(`${this.apiUrl}/create-full`, form);
+        // form ต้องมี field: eventDto (JSON string) + รูปไฟล์ตาม key
+    }
+    // PUT /api/Eventp/update-full/{id}
+    updateFull(id: number, form: FormData) {
+        return this.http.put(`${this.apiUrl}/update-full/${id}`, form);
+    }
+
 }

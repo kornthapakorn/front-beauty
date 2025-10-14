@@ -71,10 +71,10 @@
 }
 
 .preview-block {
-  background: #ffffff;
+  background: transparent;
   border-radius: 24px;
-  padding: 28px;
-  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
+  padding: 0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -85,11 +85,37 @@
   width: 100%;
   object-fit: cover;
 }
+.preview-block--textbox {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  align-items: flex-start;
+  width: 100%;
+  align-self: stretch;
+}
 
 .preview-block--textbox p {
   margin: 0;
-  font-size: 1rem;
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
   line-height: 1.6;
+  text-align: left;
+  color: #0f172a;
+}
+
+.preview-block--image {
+  align-self: center;
+  width: min(420px, 100%);
+}
+
+.preview-block--image .image-block {
+  width: 100%;
+  align-items: center;
+}
+
+.preview-block--image .image-block img {
+  width: 100%;
+  border-radius: 28px;
 }
 
 .preview-block--banner {
@@ -168,7 +194,7 @@
 
 .preview-banner__text {
   margin: 0;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
   line-height: 1.35;
   text-shadow: 0 18px 38px rgba(15, 23, 42, 0.45);
   white-space: pre-line;
@@ -576,7 +602,7 @@
 
 .section-block__children .preview-block--banner .preview-banner__text {
   margin: 0;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
   line-height: 1.35;
   text-shadow: 0 18px 38px rgba(15, 23, 42, 0.45);
   white-space: pre-line;
@@ -625,7 +651,7 @@
     padding: 16px;
   }
   .preview-block {
-    padding: 22px;
+    padding: 0;
   }
   .about {
     grid-template-columns: 1fr;

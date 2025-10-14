@@ -219,6 +219,7 @@ export class ManageEventComponent implements OnInit {
   }
 
   async openContactModal(): Promise<void> {
+    this.cancelDeleteContactRequest();
     this.contactModalOpen = true;
     this.contactLoading = true;
     this.contactError = '';
@@ -253,6 +254,7 @@ export class ManageEventComponent implements OnInit {
 
   closeContactModal(): void {
     this.contactModalOpen = false;
+    this.cancelDeleteContactRequest();
   }
 
   addContactPic(): void {
@@ -267,12 +269,16 @@ export class ManageEventComponent implements OnInit {
     this.contactDeleteIndex = null;
   }
 
-  confirmDeleteContact(): void {
-    if (this.contactDeleteIndex === null) { return; }
-    this.contactPics.removeAt(this.contactDeleteIndex);
+  confirmDeleteContact(index?: number): void {
+    const targetIndex = typeof index === 'number' ? index : this.contactDeleteIndex;
+    if (targetIndex === null || targetIndex === undefined) { return; }
+    this.contactPics.removeAt(targetIndex);
     if (this.contactPics.length === 0) {
       this.contactPics.push(this.createPicGroup());
     }
+    this.contactPics.markAsDirty();
+    this.contactPics.markAsTouched();
+    this.contactPics.updateValueAndValidity({ onlySelf: true });
     this.contactDeleteIndex = null;
   }
 
@@ -489,7 +495,3 @@ export class ManageEventComponent implements OnInit {
     this.router.navigate(['/Login']);
   }
 }
-
-
-
-

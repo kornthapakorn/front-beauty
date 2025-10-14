@@ -675,39 +675,45 @@ td.manage {
 
 }
 
+.contact-delete-confirm__label {
+    font-size: .9rem;
+    color: #dc2626;
+    margin-right: 12px;
+}
 
+.contact-delete-confirm__btn {
+    border: none;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: .85rem;
+    font-family: "Judson", serif;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
 
+.contact-delete-confirm__btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
 
+.contact-delete-confirm__btn--cancel {
+    background: #e5e7eb;
+    color: #1f2937;
+}
 
+.contact-delete-confirm__btn--cancel:hover {
+    background: #d1d5db;
+}
 
+.contact-delete-confirm__btn--confirm {
+    background: #dc2626;
+    color: #fff;
+}
 
+.contact-delete-confirm__btn--confirm:hover {
+    background: #b91c1c;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.contact-delete-confirm__btn + .contact-delete-confirm__btn {
+    margin-left: 8px;
+}

@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
+import { EventService } from '../../domain/event.service';
 import { EventpService } from '../../domain/eventp.service';
 import { EventCreateDto } from '../../models/event.model';
 import { EventComponentDto } from '../../models/event-component.model';
@@ -192,7 +193,7 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   openMenuId: number | null = null;
   todayStr = this.toYMD(new Date());
 
-  private readonly draftStorageKey = 'create-event-draft';
+  private draftStorageKey = 'create-event-draft';
   private formChangesSub?: Subscription;
   private restoringDraft = false;
   private pendingCategoryIds: number[] = [];
@@ -1940,4 +1941,9 @@ async createCategory() {
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
   }
 }
+
+
+
+
+
 

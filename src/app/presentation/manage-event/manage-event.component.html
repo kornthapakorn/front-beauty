@@ -128,9 +128,16 @@
       <div class="contact-list" *ngIf="!contactLoading">
         <div class="contact-item" *ngFor="let group of picControls; let i = index; trackBy: trackByIndex" [formGroup]="group">
           <div class="contact-item-header">
-            <button type="button" class="icon-btn" (click)="requestDeleteContact(i)" title="ลบ">
-              <i class="bi bi-trash"></i>
-            </button>
+            <ng-container *ngIf="contactDeleteIndex === i; else deleteTrigger">
+              <span class="contact-delete-confirm__label">ยืนยันลบ?</span>
+              <button type="button" class="contact-delete-confirm__btn contact-delete-confirm__btn--cancel" (click)="cancelDeleteContactRequest()">ยกเลิก</button>
+              <button type="button" class="contact-delete-confirm__btn contact-delete-confirm__btn--confirm" (click)="confirmDeleteContact(i)">ลบ</button>
+            </ng-container>
+            <ng-template #deleteTrigger>
+              <button type="button" class="icon-btn" (click)="requestDeleteContact(i)" title="ลบ">
+                <i class="bi bi-trash"></i>
+              </button>
+            </ng-template>
           </div>
 
           <div class="contact-image-box">
@@ -184,7 +191,3 @@
     <button type="button" class="btn" (click)="closeModal()">ปิด</button>
   </div>
 </div>
-
-
-
-
