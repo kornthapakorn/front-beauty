@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
 }
 
@@ -381,6 +381,7 @@
 }
 
 .table-with-topic-desc {
+  text-align: left;
   border: 1px solid #111;
   border-radius: 8px;
   background-color: #fff;
