@@ -104,7 +104,7 @@
               </button>
             </div>
 
-            <!-- แสดงช่องกรอกเมื่อกด + เท่านั้น -->
+            <!-- à¹à¸ªà¸”à¸‡à¸Šà¹ˆà¸­à¸‡à¸à¸£à¸­à¸à¹€à¸¡à¸·à¹ˆà¸­à¸à¸” + à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™ -->
             <div *ngIf="showCategoryInput" class="category-input-row" style="margin-top: 8px;">
               <input
                 type="text"
@@ -127,7 +127,7 @@
           </div>
           <!-- ==== END: Category form (modified) ==== -->
 
-          <!-- รายการหมวดหมู่ -->
+          <!-- à¸£à¸²à¸¢à¸à¸²à¸£à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ -->
           <div class="category-list" *ngIf="!categoryLoading; else categoryLoadingTpl">
             <div class="category-item" *ngFor="let cat of categories">
               <button type="button" class="chip toggle"
@@ -149,7 +149,7 @@
           </ng-template>
         </div>
 
-        <!-- Footer: Save & Exit จะสร้างถ้ามีการพิมพ์ (showCategoryInput && name ไม่ว่าง) -->
+        <!-- Footer: Save & Exit à¸ˆà¸°à¸ªà¸£à¹‰à¸²à¸‡à¸–à¹‰à¸²à¸¡à¸µà¸à¸²à¸£à¸žà¸´à¸¡à¸žà¹Œ (showCategoryInput && name à¹„à¸¡à¹ˆà¸§à¹ˆà¸²à¸‡) -->
         <div class="panel-footer">
           <button type="button" class="btn primary" (click)="createCategory()">Save &amp; Exit</button>
         </div>
@@ -480,4 +480,5 @@
 <div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
   <div class="toast-body">{{ toastMessage }}</div>
 </div>
+
 

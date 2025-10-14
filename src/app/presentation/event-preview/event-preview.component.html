@@ -153,8 +153,10 @@
     </section>
 
     <section *ngSwitchCase="'tablewithtopicanddesc'" class="preview-block preview-block--table">
-      <h3 *ngIf="hasContent(comp.tableWithTopicAndDesc?.title)">{{ comp.tableWithTopicAndDesc?.title }}</h3>
-      <p *ngIf="hasContent(comp.tableWithTopicAndDesc?.textDesc)">{{ comp.tableWithTopicAndDesc?.textDesc }}</p>
+      <div class="table-with-topic-desc" *ngIf="hasContent(comp.tableWithTopicAndDesc?.title) || hasContent(comp.tableWithTopicAndDesc?.textDesc)">
+        <div class="table-with-topic-desc__topic" *ngIf="hasContent(comp.tableWithTopicAndDesc?.title)">{{ comp.tableWithTopicAndDesc?.title }}</div>
+        <div class="table-with-topic-desc__desc" *ngIf="hasContent(comp.tableWithTopicAndDesc?.textDesc)">{{ comp.tableWithTopicAndDesc?.textDesc }}</div>
+      </div>
     </section>
 
     <section *ngSwitchCase="'onetopicimagecaptionbutton'" class="preview-block preview-block--one-topic">
