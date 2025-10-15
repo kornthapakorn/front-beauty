@@ -212,6 +212,32 @@
   background: #f0f2f7;
 }
 
+.about__hero--error,
+.about__card-image--error {
+  border-color: #dc2626;
+}
+
+.about__error {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
+.about__error--inline {
+  margin-top: 6px;
+}
+
+.about__error--block {
+  margin-top: 10px;
+}
+
+.about__error i {
+  font-size: 1.1rem;
+}
+
 @media (max-width: 640px) {
   .about__inner {
     padding: 16px;

@@ -6,8 +6,10 @@
       type="button"
       class="about__hero"
       [class.about__hero--empty]="!hasHeroImage"
+      [class.about__hero--error]="heroErrorMessage"
       [disabled]="frozen"
       (click)="onPickHero()"
+      [attr.aria-invalid]="heroErrorMessage ? 'true' : null"
       aria-label="Select main image"
     >
       <ng-container *ngIf="hasHeroImage; else heroPlaceholder">
@@ -19,6 +21,11 @@
         </div>
       </ng-template>
     </button>
+
+    <div class="about__error about__error--block" *ngIf="heroErrorMessage" aria-live="polite">
+      <i class="bi bi-exclamation-circle"></i>
+      <span>{{ heroErrorMessage }}</span>
+    </div>
 
     <button
       type="button"
@@ -59,8 +66,10 @@
           type="button"
           class="about__card-image"
           [class.about__card-image--empty]="!leftImage"
+          [class.about__card-image--error]="leftImageErrorMessage"
           [disabled]="frozen"
           (click)="onPickCard('left')"
+          [attr.aria-invalid]="leftImageErrorMessage ? 'true' : null"
           aria-label="Select left image"
         >
           <ng-container *ngIf="leftImage; else leftPlaceholder">
@@ -70,6 +79,10 @@
             <img src="assets/icons/upload.png" alt="Upload" />
           </ng-template>
         </button>
+        <div class="about__error about__error--inline" *ngIf="leftImageErrorMessage" aria-live="polite">
+          <i class="bi bi-exclamation-circle"></i>
+          <span>{{ leftImageErrorMessage }}</span>
+        </div>
 
         <button
           type="button"
@@ -87,8 +100,10 @@
           type="button"
           class="about__card-image"
           [class.about__card-image--empty]="!rightImage"
+          [class.about__card-image--error]="rightImageErrorMessage"
           [disabled]="frozen"
           (click)="onPickCard('right')"
+          [attr.aria-invalid]="rightImageErrorMessage ? 'true' : null"
           aria-label="Select right image"
         >
           <ng-container *ngIf="rightImage; else rightPlaceholder">
@@ -98,6 +113,10 @@
             <img src="assets/icons/upload.png" alt="Upload" />
           </ng-template>
         </button>
+        <div class="about__error about__error--inline" *ngIf="rightImageErrorMessage" aria-live="polite">
+          <i class="bi bi-exclamation-circle"></i>
+          <span>{{ rightImageErrorMessage }}</span>
+        </div>
 
         <button
           type="button"

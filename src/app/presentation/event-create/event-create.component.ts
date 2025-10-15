@@ -97,6 +97,10 @@ type EventDraft = {
   selectedCategoryIds?: number[];
 };
 
+type AboutImageField = 'hero' | 'left' | 'right';
+
+const IMAGE_ONLY_FILE_MESSAGE = 'Please upload only image file (jpg, jpeg, png)';
+
 const clone = <T>(obj: T): T => {
   const anyWin = window as any;
   if (typeof anyWin.structuredClone === 'function') return anyWin.structuredClone(obj);
@@ -1114,13 +1118,13 @@ async createCategory() {
       }
     } else if (target.field === 'popupImage') {
       if (!isAllowedImage) {
-        this.setFormTemplatePopupImageError(target.inst, 'Please upload only image file (jpg, jpeg, png)');
+        this.setFormTemplatePopupImageError(target.inst, IMAGE_ONLY_FILE_MESSAGE);
         if (input) input.value = '';
         this.imagePickerTarget = null;
         return;
       }
     } else if (!file.type.startsWith('image/')) {
-      alert('Please upload only image file (jpg, jpeg, png)');
+      alert(IMAGE_ONLY_FILE_MESSAGE);
       if (input) input.value = '';
       this.imagePickerTarget = null;
       return;
@@ -1152,6 +1156,9 @@ async createCategory() {
       inst.props.display_picture ??= { src: '' };
       inst.props.display_picture.src = url;
       (inst.props as ComponentProps).imageTopic = url;
+      if (this.isAboutUInst(inst)) {
+        this.setAboutUImageError(inst, 'hero', null);
+      }
     } else {
       inst._fileMap ??= {};
       inst._fileMap[field] = file;
@@ -1167,10 +1174,16 @@ async createCategory() {
         inst.props.gridTwoColumn ??= {};
         if (field === 'leftImage') {
           inst.props.gridTwoColumn.leftImage = url;
-        (inst.props as ComponentProps).leftImage = url;
+          (inst.props as ComponentProps).leftImage = url;
+          if (this.isAboutUInst(inst)) {
+            this.setAboutUImageError(inst, 'left', null);
+          }
         } else {
           inst.props.gridTwoColumn.rightImage = url;
-        (inst.props as ComponentProps).rightImage = url;
+          (inst.props as ComponentProps).rightImage = url;
+          if (this.isAboutUInst(inst)) {
+            this.setAboutUImageError(inst, 'right', null);
+          }
         }
       } else {
         (inst.props as Record<string, string | undefined>)[field] = url;
@@ -1185,6 +1198,21 @@ async createCategory() {
       props['popupImageError'] = message;
     } else if ("popupImageError" in props) {
       delete props['popupImageError'];
+    }
+  }
+
+  private setAboutUImageError(inst: CompInstance, field: AboutImageField, message: string | null): void {
+    inst.props ??= {} as ComponentProps;
+    const props = inst.props as Record<string, unknown>;
+    const key = field === 'hero'
+      ? 'aboutHeroError'
+      : field === 'left'
+        ? 'aboutLeftError'
+        : 'aboutRightError';
+    if (message) {
+      props[key] = message;
+    } else if (key in props) {
+      delete props[key];
     }
   }
 
@@ -1285,13 +1313,48 @@ async createCategory() {
     return hasError;
   }
 
+  private validateAboutUImages(): boolean {
+    let hasError = false;
+    const inspect = (list: CompInstance[]) => {
+      for (const inst of list) {
+        if (!this.isAboutUInst(inst)) continue;
+        const hero = this.resolveAboutUImage(inst, 'hero');
+        if (!hero) {
+          this.setAboutUImageError(inst, 'hero', IMAGE_ONLY_FILE_MESSAGE);
+          hasError = true;
+        } else {
+          this.setAboutUImageError(inst, 'hero', null);
+        }
+
+        const left = this.resolveAboutUImage(inst, 'left');
+        if (!left) {
+          this.setAboutUImageError(inst, 'left', IMAGE_ONLY_FILE_MESSAGE);
+          hasError = true;
+        } else {
+          this.setAboutUImageError(inst, 'left', null);
+        }
+
+        const right = this.resolveAboutUImage(inst, 'right');
+        if (!right) {
+          this.setAboutUImageError(inst, 'right', IMAGE_ONLY_FILE_MESSAGE);
+          hasError = true;
+        } else {
+          this.setAboutUImageError(inst, 'right', null);
+        }
+      }
+    };
+    inspect(this.frontComponents);
+    inspect(this.backComponents);
+    return hasError;
+  }
+
   private isAllowedImageType(file: File): boolean {
     const type = (file.type || '').toLowerCase();
-    if (type === 'image/jpeg' || type === 'image/png' || type === 'image/jpg') {
+    if (type && ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(type)) {
       return true;
     }
     const name = (file.name || '').toLowerCase();
-    return name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png');
+    return ['.jpg', '.jpeg', '.png', '.webp'].some(ext => name.endsWith(ext));
   }
   private revokeAllObjectUrls(inst?: CompInstance): void {
     if (!inst) return;
@@ -1725,6 +1788,11 @@ async createCategory() {
       return;
     }
 
+    if (this.validateAboutUImages()) {
+      setTimeout(() => document.querySelector('.about__error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      return;
+    }
+
     if (this.hasInvalidSaleComponents()) {
       setTimeout(() => document.querySelector('.sale-editor__field.is-invalid, .sale-editor__error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       return;
@@ -1840,6 +1908,31 @@ async createCategory() {
       return true;
     }
     return parsed.getTime() < Date.now();
+  }
+
+  private isAboutUInst(inst: CompInstance): boolean {
+    return this.normalizeType((inst.comp as any)?.tagName ?? (inst.comp as any)?.componentType) === 'aboutu';
+  }
+
+  private resolveAboutUImage(inst: CompInstance, field: AboutImageField): string {
+    const props = (inst.props ?? {}) as ComponentProps;
+    if (field === 'hero') {
+      const direct = typeof props.imageTopic === 'string' ? props.imageTopic : '';
+      const fallback = typeof props.display_picture?.src === 'string' ? props.display_picture.src : '';
+      return this.coerceString(direct || fallback);
+    }
+
+    const flatKey = field === 'left' ? 'leftImage' : 'rightImage';
+    const flatCandidate = (props as Record<string, unknown>)[flatKey];
+    const grid = props.gridTwoColumn ?? {};
+    const nestedCandidate = (grid as Record<string, unknown>)[flatKey];
+
+    const value = typeof flatCandidate === 'string' && flatCandidate.trim().length
+      ? flatCandidate
+      : typeof nestedCandidate === 'string'
+        ? nestedCandidate
+        : '';
+    return this.coerceString(value);
   }
 
   /** ---------- utils ---------- */

@@ -14,6 +14,8 @@ type GridData = {
   rightUrl?: string;
 };
 
+const IMAGE_ERROR_MESSAGE = 'Please upload only image file (jpg, jpeg, png)';
+
 type AboutProps = {
   display_picture?: { src?: string };
   imageTopic?: string;
@@ -37,6 +39,7 @@ export class AboutUNodeComponent {
   @Input() node!: HostNode;
   @Input() path: number[] = [];
   @Input() frozen = false;
+  @Input() showErrors = false;
 
   @Output() openPickerForNode = new EventEmitter<number[]>();
   @Output() openTextForField = new EventEmitter<TableTopicDescEvent>();
@@ -60,6 +63,17 @@ export class AboutUNodeComponent {
     }
     const fallback = this.props.display_picture?.src;
     return typeof fallback === 'string' ? fallback : '';
+  }
+
+  private get heroExplicitError(): string {
+    return this.getErrorMessage('aboutHeroError');
+  }
+
+  get heroErrorMessage(): string {
+    const explicit = this.heroExplicitError;
+    if (explicit) return explicit;
+    if (!this.showErrors) return '';
+    return this.hasHeroImage ? '' : IMAGE_ERROR_MESSAGE;
   }
 
   get hasHeroImage(): boolean {
@@ -88,8 +102,30 @@ export class AboutUNodeComponent {
     return !(typeof text === 'string' && text.trim().length);
   }
 
+  private get leftExplicitError(): string {
+    return this.getErrorMessage('aboutLeftError');
+  }
+
+  get leftImageErrorMessage(): string {
+    const explicit = this.leftExplicitError;
+    if (explicit) return explicit;
+    if (!this.showErrors) return '';
+    return this.leftImage.trim().length ? '' : IMAGE_ERROR_MESSAGE;
+  }
+
   get leftImage(): string {
     return this.resolveGridField('leftImage');
+  }
+
+  private get rightExplicitError(): string {
+    return this.getErrorMessage('aboutRightError');
+  }
+
+  get rightImageErrorMessage(): string {
+    const explicit = this.rightExplicitError;
+    if (explicit) return explicit;
+    if (!this.showErrors) return '';
+    return this.rightImage.trim().length ? '' : IMAGE_ERROR_MESSAGE;
   }
 
   get rightImage(): string {
@@ -161,5 +197,11 @@ export class AboutUNodeComponent {
     }
     const nested = this.grid[field];
     return typeof nested === 'string' ? nested : '';
+  }
+
+  private getErrorMessage(key: 'aboutHeroError' | 'aboutLeftError' | 'aboutRightError'): string {
+    const props = this.node?.props as Record<string, unknown> | undefined;
+    const raw = typeof props?.[key] === 'string' ? (props[key] as string) : '';
+    return raw.trim();
   }
 }

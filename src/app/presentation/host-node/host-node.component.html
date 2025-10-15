@@ -44,14 +44,8 @@
             (openGridImageForNode)="openGridImageForNode.emit($event)"
             (openGridTextCfgForNode)="openGridTextCfgForNode.emit($event)"
             (openGridUrlCfgForNode)="openGridUrlCfgForNode.emit($event)"
-            (openTableTextCfgForNode)="openTableTextCfgForNode.emit($event)"
-            (openTwoTopicImageForNode)="openTwoTopicImageForNode.emit($event)"
-            (openTwoTopicTextCfgForNode)="openTwoTopicTextCfgForNode.emit($event)"
-            (openTwoTopicBtnCfgForNode)="openTwoTopicBtnCfgForNode.emit($event)"
-            (openGridFourImageForNode)="openGridFourImageForNode.emit($event)"
             (openSaleTextCfgForNode)="openSaleTextCfgForNode.emit($event)"
             (openFormTemplateText)="openFormTemplateText.emit($event)"
-            (openFormTemplateImage)="openFormTemplateImage.emit($event)"
             (saleDateChange)="saleDateChange.emit($event)" [submitAttempted]="submitAttempted"></app-host-node>
         </div>
       </div>
@@ -146,10 +140,7 @@
         </app-grid-two-column-node>
 
         <app-form-template-node *ngSwitchCase="'formtemplate'" [node]="node" [path]="path" [frozen]="frozen"
-          [submitAttempted]="submitAttempted"
-          (openTextForField)="openFormTemplateText.emit($event)"
-          (openImagePicker)="openPickerForNode.emit($event)"
-          (openImageForComponent)="openFormTemplateImage.emit($event)">
+          (openTextForField)="openFormTemplateText.emit($event)" (openImagePicker)="openPickerForNode.emit($event)">
           <ng-container node-header>
             <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
           </ng-container>
