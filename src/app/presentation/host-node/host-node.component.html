@@ -107,7 +107,7 @@
             <ng-container *ngTemplateOutlet="nodeHeader"></ng-container>
           </ng-container>
         </app-two-topic-image-caption-button-node>
-        <app-about-u-node *ngSwitchCase="'aboutu'" [node]="node" [path]="path" [frozen]="frozen"
+        <app-about-u-node *ngSwitchCase="'aboutu'" [node]="node" [path]="path" [frozen]="frozen" [showErrors]="submitAttempted"
           (openPickerForNode)="openPickerForNode.emit($event)"
           (openTextForField)="openTableTextCfgForNode.emit($event)"
           (openGridImageForNode)="openGridImageForNode.emit($event)"

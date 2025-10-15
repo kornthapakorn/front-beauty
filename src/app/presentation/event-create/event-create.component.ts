@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -1315,31 +1315,38 @@ async createCategory() {
 
   private validateAboutUImages(): boolean {
     let hasError = false;
-    const inspect = (list: CompInstance[]) => {
+    const inspect = (list: CompInstance[] | null | undefined) => {
+      if (!Array.isArray(list)) return;
       for (const inst of list) {
-        if (!this.isAboutUInst(inst)) continue;
-        const hero = this.resolveAboutUImage(inst, 'hero');
-        if (!hero) {
-          this.setAboutUImageError(inst, 'hero', IMAGE_ONLY_FILE_MESSAGE);
-          hasError = true;
-        } else {
-          this.setAboutUImageError(inst, 'hero', null);
+        if (this.isAboutUInst(inst)) {
+          const hero = this.resolveAboutUImage(inst, 'hero');
+          if (!hero) {
+            this.setAboutUImageError(inst, 'hero', IMAGE_ONLY_FILE_MESSAGE);
+            hasError = true;
+          } else {
+            this.setAboutUImageError(inst, 'hero', null);
+          }
+
+          const left = this.resolveAboutUImage(inst, 'left');
+          if (!left) {
+            this.setAboutUImageError(inst, 'left', IMAGE_ONLY_FILE_MESSAGE);
+            hasError = true;
+          } else {
+            this.setAboutUImageError(inst, 'left', null);
+          }
+
+          const right = this.resolveAboutUImage(inst, 'right');
+          if (!right) {
+            this.setAboutUImageError(inst, 'right', IMAGE_ONLY_FILE_MESSAGE);
+            hasError = true;
+          } else {
+            this.setAboutUImageError(inst, 'right', null);
+          }
         }
 
-        const left = this.resolveAboutUImage(inst, 'left');
-        if (!left) {
-          this.setAboutUImageError(inst, 'left', IMAGE_ONLY_FILE_MESSAGE);
-          hasError = true;
-        } else {
-          this.setAboutUImageError(inst, 'left', null);
-        }
-
-        const right = this.resolveAboutUImage(inst, 'right');
-        if (!right) {
-          this.setAboutUImageError(inst, 'right', IMAGE_ONLY_FILE_MESSAGE);
-          hasError = true;
-        } else {
-          this.setAboutUImageError(inst, 'right', null);
+        const children = inst.props?.children as CompInstance[] | undefined;
+        if (children && children.length) {
+          inspect(children);
         }
       }
     };
@@ -1778,6 +1785,7 @@ async createCategory() {
     const isFav = !!this.form.value.isFav;
 
     const requiredMessage = 'Please Complete all required fields';
+    const aboutUInvalid = this.validateAboutUImages();
 
     if (!endDate) this.errors.endDate = requiredMessage;
     else if (endDate < this.todayStr) this.errors.endDate = 'End date cannot be in the past.';
@@ -1788,7 +1796,7 @@ async createCategory() {
       return;
     }
 
-    if (this.validateAboutUImages()) {
+    if (aboutUInvalid) {
       setTimeout(() => document.querySelector('.about__error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       return;
     }
