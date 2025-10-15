@@ -1,4 +1,4 @@
-<div class="event-preview">
+﻿<div class="event-preview">
   <div class="event-preview__hero" *ngIf="bannerUrl || displayName || endDateText">
     <div class="event-preview__banner" *ngIf="bannerUrl">
       <img [src]="bannerUrl" alt="Event banner" />
@@ -224,28 +224,87 @@
       </div>
     </section>
 
-    <section *ngSwitchCase="'sale'" class="preview-block preview-block--sale">
-      <div class="sale">
-        <div class="sale__info">
-          <h3 *ngIf="hasContent(comp.sale?.title)">{{ comp.sale?.title }}</h3>
-          <p *ngIf="hasContent(comp.sale?.text)">{{ comp.sale?.text }}</p>
-          <p *ngIf="hasContent(comp.sale?.textDesc)">{{ comp.sale?.textDesc }}</p>
-          <div class="sale__price" *ngIf="comp.sale?.price || comp.sale?.promoPrice">
-            <span *ngIf="comp.sale?.promoPrice" class="sale__promo">{{ formatPrice(comp.sale?.promoPrice) }}</span>
-            <span *ngIf="comp.sale?.price" class="sale__regular">{{ formatPrice(comp.sale?.price) }}</span>
+<section *ngSwitchCase="'sale'" class="preview-block preview-block--sale">
+  <ng-container *ngIf="saleState(comp.sale) as sale">
+    <div class="sale-card" [class.sale-card--expired]="sale.expired">
+      <div class="sale-card__content">
+        <header class="sale-card__header">
+          <h3 class="sale-card__title" [class.sale-card__title--placeholder]="!hasContent(comp.sale?.title)">
+            {{ hasContent(comp.sale?.title) ? comp.sale?.title : saleFallbackTitle }}
+          </h3>
+          <p class="sale-card__subtitle" [class.sale-card__subtitle--placeholder]="!hasContent(comp.sale?.text)">
+            {{ hasContent(comp.sale?.text) ? comp.sale?.text : saleFallbackSubtitle }}
+          </p>
+        </header>
+
+        <div class="sale-card__pricing">
+          <div class="sale-card__promo" *ngIf="sale.hasPromo">
+            <span class="sale-card__promo-value">{{ sale.promoValue }} {{ bahtSymbol }}</span>
           </div>
-          <a *ngIf="hasContent(comp.sale?.textOnButton) && comp.sale?.isActive"
-             class="sale__button" [href]="comp.sale?.url || '#'" target="_blank" rel="noopener">
-            {{ comp.sale?.textOnButton }}
-          </a>
-          <p *ngIf="hasContent(comp.sale?.textFooter)" class="sale__footer">{{ comp.sale?.textFooter }}</p>
+          
+          <div
+            class="sale-card__regular"
+            [class.sale-card__regular--striked]="sale.hasPromo"
+            [class.sale-card__regular--highlight]="!sale.hasPromo"
+            *ngIf="sale.hasRegular"
+          >
+            {{ sale.regularValue }} {{ bahtSymbol }}
+          </div>
         </div>
-        <div class="sale__media">
-          <img *ngIf="comp.sale?.leftImage" [src]="comp.sale?.leftImage" alt="" />
-          <img *ngIf="comp.sale?.rightImage" [src]="comp.sale?.rightImage" alt="" />
+
+        <div class="sale-card__countdown" *ngIf="sale.showCountdown">
+          <span class="sale-card__countdown-label"></span>
+          <div class="sale-card__timer">
+            <ng-container *ngFor="let part of sale.countdownParts; let last = last">
+              <span class="sale-card__timer-segment">{{ part }}</span>
+              <span class="sale-card__timer-separator" *ngIf="!last">:</span>
+            </ng-container>
+          </div>
+        </div>
+
+        <p class="sale-card__deadline" *ngIf="sale.deadlineText">{{ sale.deadlineText }}</p>
+
+        <a
+          *ngIf="hasContent(comp.sale?.textOnButton) && comp.sale?.isActive"
+          class="sale-card__cta"
+          [href]="comp.sale?.url || '#'"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ comp.sale?.textOnButton }}
+        </a>
+
+        <p class="sale-card__footer">
+          {{ hasContent(comp.sale?.textFooter) ? comp.sale?.textFooter : saleFallbackFooter }}
+        </p>
+      </div>
+
+      <div *ngIf="saleHasLogos(comp.sale)" class="sale-card__logos">
+        <div class="sale-card__logo">
+          <div class="sale-card__logo-image" [class.sale-card__logo-image--empty]="!hasContent(comp.sale?.leftImage)">
+            <ng-container *ngIf="hasContent(comp.sale?.leftImage)">
+              <img [src]="comp.sale?.leftImage" alt="Left sale graphic" />
+            </ng-container>
+          </div>
+          <p class="sale-card__logo-text">
+            {{ hasContent(comp.sale?.leftText) ? comp.sale?.leftText : saleFallbackLogoText }}
+          </p>
+        </div>
+
+        <div class="sale-card__logo">
+          <div class="sale-card__logo-image" [class.sale-card__logo-image--empty]="!hasContent(comp.sale?.rightImage)">
+            <ng-container *ngIf="hasContent(comp.sale?.rightImage)">
+              <img [src]="comp.sale?.rightImage" alt="Right sale graphic" />
+            </ng-container>
+          </div>
+          <p class="sale-card__logo-text">
+            {{ hasContent(comp.sale?.rightText) ? comp.sale?.rightText : saleFallbackLogoText }}
+          </p>
         </div>
       </div>
-    </section>
+    </div>
+  </ng-container>
+</section>
 
     <section *ngSwitchCase="'button'" class="preview-block preview-block--button">
       <a *ngIf="hasContent(comp.button?.textOnButton) && comp.button?.isActive"
@@ -312,4 +371,8 @@
     </section>
   </ng-container>
 </ng-template>
+
+
+
+
 

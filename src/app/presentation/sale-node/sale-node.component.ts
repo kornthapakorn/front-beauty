@@ -188,14 +188,12 @@ export class SaleNodeComponent implements OnInit, OnDestroy, OnChanges {
   get deadlineText(): string {
     const explicit = this.coerceString((this.props as any).textDesc);
     if (explicit) return explicit;
-    const endDate = this.endDateValue;
-    if (!endDate) return '';
-    return this.formatDeadline(endDate);
+    return this.fallbackLogoText;
   }
   get deadlinePlaceholder(): boolean {
-    const explicit = this.coerceString((this.props as any).textDesc);
-    return !explicit && !this.endDateValue;
+    return !this.hasText((this.props as any).textDesc);
   }
+
 
   // ====== Footer & Button ======
   get footerText(): string {
@@ -383,21 +381,6 @@ export class SaleNodeComponent implements OnInit, OnDestroy, OnChanges {
     return `${y}-${m}-${d}T${h}:${min}`;
   }
 
-  private formatDeadline(raw: string): string {
-    const parsed = this.tryParseDate(raw);
-    if (!parsed) return '';
-    const formatted = new Intl.DateTimeFormat('th-TH', { dateStyle: 'long' }).format(parsed);
-    const prefix = String.fromCharCode(
-      0x0E2B, 0x0E21, 0x0E14,
-      0x0E40, 0x0E02, 0x0E15,
-      0x0E23, 0x0E31, 0x0E1A,
-      0x0E2A, 0x0E21, 0x0E31,
-      0x0E04, 0x0E23, 0x0020,
-      0x0E27, 0x0E31, 0x0E19,
-      0x0E17, 0x0E35, 0x0E49, 0x0020
-    );
-    return `${prefix}${formatted}`;
-  }
 
   private resolveColumn(field: 'leftImage' | 'rightImage' | 'leftText' | 'rightText'): string {
     const flat = this.props[field];
@@ -475,3 +458,5 @@ export class SaleNodeComponent implements OnInit, OnDestroy, OnChanges {
     return Math.max(0, value).toString().padStart(2, '0');
   }
 }
+
+

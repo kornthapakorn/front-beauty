@@ -12,6 +12,16 @@
   border: 1px solid #d8dee6;
   border-radius: 16px;
   background: #ffffff;
+
+  /* ป้องกันคอนเทนต์/เงาโผล่นอกมุมการ์ด */
+  overflow: hidden;
+}
+
+/* ไม่ให้ width เกินเพราะ padding/border */
+.sale-editor,
+.sale-editor * {
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .sale-editor__stack {
@@ -50,6 +60,7 @@
   pointer-events: none;
 }
 
+/* วงแหวน hover/focus ด้านในกล่อง */
 .sale-editor__field:not(:disabled):hover,
 .sale-editor__field:not(:disabled):focus-visible,
 .sale-editor__logo-text:not(:disabled):hover,
@@ -59,7 +70,7 @@
 .sale-editor__gear:not(:disabled):hover,
 .sale-editor__gear:not(:disabled):focus-visible {
   border-color: #94a3f3;
-  box-shadow: 0 0 0 3px rgba(148, 163, 243, 0.25);
+  box-shadow: inset 0 0 0 3px rgba(148, 163, 243, 0.25);
 }
 
 .sale-editor__field--price {
@@ -97,12 +108,16 @@
   height: 0;
 }
 
+/* ===== Logos / Images block (แก้ไม่ให้ปุ่มล่างชน/ถูกตัดมุม) ===== */
 .sale-editor__logos {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-top: 12px;
+  padding: 12px 12px 22px;
+  /* เดิมมีเฉพาะ padding-top:12px; */
   border-top: 1px solid #e2e8f0;
+  overflow: visible;
+  /* ไม่ให้ตัดมุมปุ่มล่าง */
 }
 
 .sale-editor__logos-toolbar {
@@ -127,12 +142,15 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: 16px;
+  margin-bottom: 10px;
+  /* เว้นช่องก่อนถึงปุ่ม Text here */
 }
 
 .sale-editor__logo-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  /* เพิ่มลมหายใจระหว่างรูปกับปุ่ม */
 }
 
 .sale-editor__logo-image {
@@ -174,6 +192,11 @@
   align-items: center;
 }
 
+/* กันปุ่มขวาชนขอบขวาเวลามุมโค้งการ์ดกินพื้นที่ */
+.sale-editor__logo-card:last-child .sale-editor__logo-text {
+  margin-right: 4px;
+}
+
 /* error styles */
 .sale-editor__error {
   margin-top: 6px;
@@ -182,16 +205,36 @@
   font-weight: 500;
 }
 
+/* วงแหวน error ให้เป็นด้านใน ไม่ล้นขอบการ์ด */
 .is-invalid {
   border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+  box-shadow: inset 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
+
+/* กันกรณีปุ่ม/รูปมีเงาด้านนอกสะสม */
+.sale-editor__logo-image
+/* ตัวเลือกเสริม: ขยับปุ่มลงอีก 2px */
+.sale-editor__logo-text{ margin-bottom: 2px; }
+
+.sale-editor__gear,
+.sale-editor__field {
+  outline: none;
+  background-clip: padding-box;
 }
 
 @media (max-width: 520px) {
   .sale-editor {
     padding: 12px;
   }
+
   .sale-editor__logos-grid {
     grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+/* ถ้าบราวเซอร์รองรับ ใช้ clip แทน hidden ที่แม่การ์ด */
+@supports (overflow: clip) {
+  .sale-editor {
+    overflow: clip;
   }
 }

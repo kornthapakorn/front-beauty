@@ -1,4 +1,4 @@
-<!-- Floating header actions -->
+﻿<!-- Floating header actions -->
 <button class="floating-btn left" aria-label="Menu" (click)="toggleMenu()">
   <img src="assets/icons/hamburger.png" alt="Hamburger" />
 </button>
@@ -104,7 +104,7 @@
               </button>
             </div>
 
-            <!-- à¹à¸ªà¸”à¸‡à¸Šà¹ˆà¸­à¸‡à¸à¸£à¸­à¸à¹€à¸¡à¸·à¹ˆà¸­à¸à¸” + à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™ -->
+            <!-- Ã Â¹ÂÃ Â¸ÂªÃ Â¸â€Ã Â¸â€¡Ã Â¸Å Ã Â¹Ë†Ã Â¸Â­Ã Â¸â€¡Ã Â¸ÂÃ Â¸Â£Ã Â¸Â­Ã Â¸ÂÃ Â¹â‚¬Ã Â¸Â¡Ã Â¸Â·Ã Â¹Ë†Ã Â¸Â­Ã Â¸ÂÃ Â¸â€ + Ã Â¹â‚¬Ã Â¸â€”Ã Â¹Ë†Ã Â¸Â²Ã Â¸â„¢Ã Â¸Â±Ã Â¹â€°Ã Â¸â„¢ -->
             <div *ngIf="showCategoryInput" class="category-input-row" style="margin-top: 8px;">
               <input
                 type="text"
@@ -127,7 +127,7 @@
           </div>
           <!-- ==== END: Category form (modified) ==== -->
 
-          <!-- à¸£à¸²à¸¢à¸à¸²à¸£à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ -->
+          <!-- Ã Â¸Â£Ã Â¸Â²Ã Â¸Â¢Ã Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¸Â«Ã Â¸Â¡Ã Â¸Â§Ã Â¸â€Ã Â¸Â«Ã Â¸Â¡Ã Â¸Â¹Ã Â¹Ë† -->
           <div class="category-list" *ngIf="!categoryLoading; else categoryLoadingTpl">
             <div class="category-item" *ngFor="let cat of categories">
               <button type="button" class="chip toggle"
@@ -149,7 +149,7 @@
           </ng-template>
         </div>
 
-        <!-- Footer: Save & Exit à¸ˆà¸°à¸ªà¸£à¹‰à¸²à¸‡à¸–à¹‰à¸²à¸¡à¸µà¸à¸²à¸£à¸žà¸´à¸¡à¸žà¹Œ (showCategoryInput && name à¹„à¸¡à¹ˆà¸§à¹ˆà¸²à¸‡) -->
+        <!-- Footer: Save & Exit Ã Â¸Ë†Ã Â¸Â°Ã Â¸ÂªÃ Â¸Â£Ã Â¹â€°Ã Â¸Â²Ã Â¸â€¡Ã Â¸â€“Ã Â¹â€°Ã Â¸Â²Ã Â¸Â¡Ã Â¸ÂµÃ Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¸Å¾Ã Â¸Â´Ã Â¸Â¡Ã Â¸Å¾Ã Â¹Å’ (showCategoryInput && name Ã Â¹â€žÃ Â¸Â¡Ã Â¹Ë†Ã Â¸Â§Ã Â¹Ë†Ã Â¸Â²Ã Â¸â€¡) -->
         <div class="panel-footer">
           <button type="button" class="btn primary" (click)="createCategory()">Save &amp; Exit</button>
         </div>
@@ -281,7 +281,7 @@
     class="config-modal__panel"
     role="dialog"
     aria-modal="true"
-    aria-label="Edit banner text"
+    [attr.aria-label]="textConfigDialogLabel"
     [formGroup]="textConfigForm"
     (ngSubmit)="saveTextConfig()"
     (click)="$event.stopPropagation()"
@@ -289,7 +289,7 @@
     <button type="button" class="config-modal__close" aria-label="Close text modal" (click)="closeTextConfig()">
       <i class="bi bi-x-lg"></i>
     </button>
-    <h3 class="config-modal__title">Banner Text</h3>
+    <h3 class="config-modal__title">{{ textConfigTitle }}</h3>
     <div class="config-modal__body">
       <ng-container *ngIf="isPriceTextConfig; else textConfigTextarea">
         <input
@@ -480,5 +480,6 @@
 <div class="toast" *ngIf="toastOpen" role="status" aria-live="polite">
   <div class="toast-body">{{ toastMessage }}</div>
 </div>
+
 
 

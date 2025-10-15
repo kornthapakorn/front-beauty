@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -173,6 +173,37 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   private readonly textConfigDefaultValidators = [Validators.maxLength(500)];
   private readonly priceFieldPattern = /^(?:\d+(?:\.\d+)?)?$/;
 
+  private readonly textFieldLabels: Record<TextField, string> = {
+    display_text: 'ข้อความ',
+    leftText: 'ข้อความด้านซ้าย',
+    rightText: 'ข้อความด้านขวา',
+    title: 'หัวข้อ',
+    textDesc: 'รายละเอียด',
+    textTopic: 'หัวข้อย่อย',
+    topic: 'หัวข้อฟอร์ม',
+    leftTitle: 'หัวข้อด้านซ้าย',
+    rightTitle: 'หัวข้อด้านขวา',
+    leftTextDesc: 'รายละเอียดด้านซ้าย',
+    rightTextDesc: 'รายละเอียดด้านขวา',
+    text: 'ข้อความ',
+    componentText: 'ข้อความฟอร์ม',
+    promoPrice: 'ราคาโปรโมชั่น',
+    price: 'ราคาปกติ',
+    endDate: 'วันสิ้นสุด',
+    textFooter: 'ข้อความส่วนท้าย'
+  };
+
+  private readonly formComponentTextLabels: Record<FormComponentTemplateDto['componentType'], string> = {
+    singleSelection: 'คำถามแบบเลือกคำตอบ',
+    textField: 'คำถามแบบข้อความ',
+    date: 'คำถามช่องวันที่',
+    birthDate: 'ป้ายชื่อวันเกิด',
+    imageUpload: 'ข้อความอัปโหลดรูป',
+    imageUploadWithImageContent: 'คำอธิบายรูปภาพ',
+    formButton: 'ข้อความปุ่มแบบฟอร์ม'
+  };
+
+
   textConfigForm = this.fb.group({
     display_text: this.fb.control<string>('', this.textConfigDefaultValidators)
   });
@@ -232,7 +263,7 @@ openCategory() {
   this.categoryDeleteError = '';
   this.categoryDeleteLoading = false;
 
-  // ซ่อนช่องกรอกตอนเปิด (ยังไม่โชว์จนกว่าจะกด +)
+  // à¸‹à¹ˆà¸­à¸™à¸Šà¹ˆà¸­à¸‡à¸à¸£à¸­à¸à¸•à¸­à¸™à¹€à¸›à¸´à¸” (à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹‚à¸Šà¸§à¹Œà¸ˆà¸™à¸à¸§à¹ˆà¸²à¸ˆà¸°à¸à¸” +)
   this.showCategoryInput = false;
   this.categoryForm.reset({ name: '' });
   this.categoryForm.markAsPristine();
@@ -250,7 +281,7 @@ closeCategory() {
   this.categoryDeleteError = '';
   this.categoryDeleteLoading = false;
 
-  // reset & ซ่อน input เสมอ
+  // reset & à¸‹à¹ˆà¸­à¸™ input à¹€à¸ªà¸¡à¸­
   this.categoryForm.reset({ name: '' });
   this.categoryForm.markAsPristine();
   this.categoryForm.markAsUntouched();
@@ -325,7 +356,7 @@ async createCategory() {
     this.categories = nextList;
     this.categoriesLoaded = true;
 
-    // reset ช่องกรอก และซ่อน
+    // reset à¸Šà¹ˆà¸­à¸‡à¸à¸£à¸­à¸ à¹à¸¥à¸°à¸‹à¹ˆà¸­à¸™
     this.categoryForm.reset({ name: '' });
     this.categoryForm.markAsPristine();
     this.categoryForm.markAsUntouched();
@@ -635,6 +666,29 @@ async createCategory() {
     control.markAsPristine();
     control.markAsUntouched();
     control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  get textConfigTitle(): string {
+    const field = this.textConfigTarget?.field ?? null;
+    if (!field) {
+      return 'แก้ไขข้อความ';
+    }
+
+    if (field === 'componentText') {
+      const component = this.formTextComponentTarget;
+      if (component) {
+        const label = this.formComponentTextLabels[component.componentType];
+        if (label) {
+          return label;
+        }
+      }
+    }
+
+    return this.textFieldLabels[field] ?? 'แก้ไขข้อความ';
+  }
+
+  get textConfigDialogLabel(): string {
+    return this.textConfigTitle;
   }
 
   get isPriceTextConfig(): boolean {
