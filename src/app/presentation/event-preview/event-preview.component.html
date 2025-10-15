@@ -1,4 +1,4 @@
-﻿<div class="event-preview">
+<div class="event-preview">
   <div class="event-preview__hero" *ngIf="bannerUrl || displayName || endDateText">
     <div class="event-preview__banner" *ngIf="bannerUrl">
       <img [src]="bannerUrl" alt="Event banner" />
@@ -201,29 +201,81 @@
     </section>
 
     <section *ngSwitchCase="'aboutu'" class="preview-block preview-block--about">
-      <div class="about">
-        <div class="about__media" *ngIf="comp.aboutU?.imageTopic">
-          <img [src]="comp.aboutU?.imageTopic" alt="" />
+      <div class="about-preview">
+        <div
+          class="about-preview__hero"
+          [class.about-preview__hero--placeholder]="!hasContent(comp.aboutU?.imageTopic)"
+        >
+          <ng-container *ngIf="hasContent(comp.aboutU?.imageTopic); else aboutHeroPlaceholder">
+            <img [src]="comp.aboutU?.imageTopic" alt="About highlight" />
+          </ng-container>
+          <ng-template #aboutHeroPlaceholder>
+            <div class="about-preview__hero-placeholder">Hero image</div>
+          </ng-template>
         </div>
-        <div class="about__content">
-          <h3 *ngIf="hasContent(comp.aboutU?.textTopic)">{{ comp.aboutU?.textTopic }}</h3>
-          <p *ngIf="hasContent(comp.aboutU?.textDesc)">{{ comp.aboutU?.textDesc }}</p>
-          <div class="about__grid">
-            <div class="about__col">
-              <img *ngIf="comp.aboutU?.leftImage" [src]="comp.aboutU?.leftImage" alt="" />
-              <p *ngIf="hasContent(comp.aboutU?.leftText)">{{ comp.aboutU?.leftText }}</p>
-              <a *ngIf="hasContent(comp.aboutU?.leftUrl)" [href]="comp.aboutU?.leftUrl" target="_blank" rel="noopener">Explore</a>
+
+        <div class="about-preview__body">
+          <h3
+            class="about-preview__title"
+            [class.about-preview__title--placeholder]="!hasContent(comp.aboutU?.textTopic)"
+          >
+            {{ comp.aboutU?.textTopic || 'Text here' }}
+          </h3>
+          <p
+            class="about-preview__description"
+            [class.about-preview__description--placeholder]="!hasContent(comp.aboutU?.textDesc)"
+          >
+            {{ comp.aboutU?.textDesc || 'Text here' }}
+          </p>
+
+          <div class="about-preview__links">
+            <div class="about-preview__link-card" [class.about-preview__link-card--clickable]="hasContent(comp.aboutU?.leftUrl)">
+              <ng-container *ngIf="hasContent(comp.aboutU?.leftImage); else aboutLeftPlaceholder">
+                <a
+                  *ngIf="hasContent(comp.aboutU?.leftUrl); else aboutLeftImage"
+                  [href]="comp.aboutU?.leftUrl"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <img [src]="comp.aboutU?.leftImage" alt="Left link" />
+                </a>
+                <ng-template #aboutLeftImage>
+                  <img [src]="comp.aboutU?.leftImage" alt="Left link" />
+                </ng-template>
+              </ng-container>
+              <ng-template #aboutLeftPlaceholder>
+                <div class="about-preview__icon-placeholder">Image</div>
+              </ng-template>
+              <p *ngIf="hasContent(comp.aboutU?.leftText)" class="about-preview__caption">
+                {{ comp.aboutU?.leftText }}
+              </p>
             </div>
-            <div class="about__col">
-              <img *ngIf="comp.aboutU?.rightImage" [src]="comp.aboutU?.rightImage" alt="" />
-              <p *ngIf="hasContent(comp.aboutU?.rightText)">{{ comp.aboutU?.rightText }}</p>
-              <a *ngIf="hasContent(comp.aboutU?.rightUrl)" [href]="comp.aboutU?.rightUrl" target="_blank" rel="noopener">Explore</a>
+
+            <div class="about-preview__link-card" [class.about-preview__link-card--clickable]="hasContent(comp.aboutU?.rightUrl)">
+              <ng-container *ngIf="hasContent(comp.aboutU?.rightImage); else aboutRightPlaceholder">
+                <a
+                  *ngIf="hasContent(comp.aboutU?.rightUrl); else aboutRightImage"
+                  [href]="comp.aboutU?.rightUrl"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <img [src]="comp.aboutU?.rightImage" alt="Right link" />
+                </a>
+                <ng-template #aboutRightImage>
+                  <img [src]="comp.aboutU?.rightImage" alt="Right link" />
+                </ng-template>
+              </ng-container>
+              <ng-template #aboutRightPlaceholder>
+                <div class="about-preview__icon-placeholder">Image</div>
+              </ng-template>
+              <p *ngIf="hasContent(comp.aboutU?.rightText)" class="about-preview__caption">
+                {{ comp.aboutU?.rightText }}
+              </p>
             </div>
           </div>
         </div>
       </div>
     </section>
-
 <section *ngSwitchCase="'sale'" class="preview-block preview-block--sale">
   <ng-container *ngIf="saleState(comp.sale) as sale">
     <div class="sale-card" [class.sale-card--expired]="sale.expired">
