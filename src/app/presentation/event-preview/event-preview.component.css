@@ -102,8 +102,8 @@
 
 .preview-textbox__text {
   margin: 0;
-  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
-  line-height: 1.6;
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  line-height: 1.4;
   text-align: left;
   color: #0f172a;
 }
@@ -503,9 +503,11 @@
 }
 
 .table-with-topic-desc {
+  width: min(50%, 320px);
+  margin: 0 auto;
   text-align: left;
   border: 1.5px solid rgba(30, 41, 59, 0.9);
-  border-radius: 16px;
+  border-radius: 12px;
   background: #ffffff;
   overflow: hidden;
   display: flex;
@@ -514,10 +516,10 @@
 
 .table-with-topic-desc__topic,
 .table-with-topic-desc__desc {
-  padding: clamp(16px, 4vw, 24px);
-  line-height: 1.4;
+  padding: clamp(8px, 2vw, 12px);
+  line-height: 1.35;
   margin: 0;
-  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  font-size: clamp(0.8rem, 1.4vw, 1.1rem);
 }
 
 .table-with-topic-desc__topic {
