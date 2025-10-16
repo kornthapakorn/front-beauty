@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 
 import { EventComponentDto, SaleDto } from '../../models/event-component.model';
@@ -6,12 +6,17 @@ import { FormComponentTemplateDto } from '../../models/form-component';
 
 interface SalePreviewState {
   hasPromo: boolean;
+  hasPromoValue: boolean;
   hasRegular: boolean;
   promoValue: string | null;
   regularValue: string | null;
   showCountdown: boolean;
   countdownParts: string[];
   deadlineText: string;
+  deadlinePlaceholder: boolean;
+  buttonText: string;
+  buttonPlaceholder: boolean;
+  buttonActive: boolean;
   expired: boolean;
 }
 
@@ -28,12 +33,15 @@ export class EventPreviewComponent implements OnInit, OnDestroy {
   @Input() endDate = '';
   @Input() components: EventComponentDto[] = [];
 
-  readonly saleFallbackTitle = 'สมัครตอนนี้!';
-  readonly saleFallbackSubtitle = 'ค่าสมัคร';
-  readonly saleFallbackFooter = 'สอบถามเพิ่มเติม';
+  readonly saleFallbackTitle = '\u0E2A\u0E21\u0E31\u0E04\u0E23\u0E15\u0E2D\u0E19\u0E19\u0E35!';
+  readonly saleFallbackSubtitle = '\u0E04\u0E48\u0E32\u0E2A\u0E21\u0E31\u0E04\u0E23';
+  readonly saleFallbackFooter = '\u0E2A\u0E2D\u0E1A\u0E16\u0E32\u0E21\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E15\u0E34\u0E21';
   readonly saleFallbackLogoText = 'Text here';
-  readonly saleCountdownLabel = 'สิ้นสุดใน';
+  readonly saleFallbackButton = '\u0E25\u0E07\u0E17\u0E30\u0E40\u0E1A\u0E35\u0E22\u0E19 !!';
+  readonly saleCountdownLabel = '\u0E2A\u0E34\u0E49\u0E19\u0E2A\u0E38\u0E14\u0E43\u0E19';
   readonly bahtSymbol = String.fromCharCode(0x0E3F);
+  private readonly saleCurrency = new Intl.NumberFormat('th-TH');
+  readonly saleFallbackAmountValue = this.saleCurrency.format(0);
 
   now = Date.now();
   private saleTicker: ReturnType<typeof setInterval> | null = null;
@@ -77,18 +85,28 @@ export class EventPreviewComponent implements OnInit, OnDestroy {
     const diffMs = endDate ? endDate.getTime() - this.now : null;
     const countdownActive = diffMs !== null && diffMs > 0;
     const promoEligible = promoNumber !== null && regularNumber !== null && promoNumber > 0 && regularNumber > 0 && promoNumber < regularNumber;
+    const hasPromoValue = promoNumber !== null;
     const hasPromo = promoEligible && countdownActive;
     const hasRegular = regularNumber !== null;
     const expired = promoEligible && !!endDate && !countdownActive;
+    const rawDeadline = this.buildDeadlineText(sale);
+    const hasDeadline = rawDeadline.length > 0;
+    const buttonTextRaw = (sale?.textOnButton || '').trim();
+    const buttonActive = sale?.isActive !== false;
 
     return {
       hasPromo,
+      hasPromoValue,
       hasRegular,
-      promoValue: promoNumber !== null ? this.formatNumber(Math.max(0, promoNumber)) : null,
-      regularValue: regularNumber !== null ? this.formatNumber(Math.max(0, regularNumber)) : null,
+      promoValue: hasPromoValue ? this.formatNumber(Math.max(0, promoNumber ?? 0)) : null,
+      regularValue: hasRegular ? this.formatNumber(Math.max(0, regularNumber ?? 0)) : null,
       showCountdown: hasPromo,
       countdownParts: hasPromo && diffMs !== null ? this.buildCountdownParts(diffMs) : [],
-      deadlineText: this.buildDeadlineText(sale),
+      deadlineText: hasDeadline ? rawDeadline : this.saleFallbackLogoText,
+      deadlinePlaceholder: !hasDeadline,
+      buttonText: buttonTextRaw || this.saleFallbackButton,
+      buttonPlaceholder: buttonTextRaw.length === 0,
+      buttonActive,
       expired
     };
   }
@@ -182,6 +200,7 @@ export class EventPreviewComponent implements OnInit, OnDestroy {
   }
 
 }
+
 
 
 

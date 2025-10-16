@@ -57,22 +57,44 @@
     </section>
 
     <section *ngSwitchCase="'textbox'" class="preview-block preview-block--textbox">
-      <p>{{ comp.textBox?.text }}</p>
+      <div class="preview-textbox">
+        <p class="preview-textbox__text" [class.preview-textbox__text--placeholder]="!hasContent(comp.textBox?.text)">
+          {{ comp.textBox?.text || 'Text here' }}
+        </p>
+      </div>
     </section>
 
-    <section *ngSwitchCase="'imagewithcaption'" class="preview-block preview-block--image">
+        <section *ngSwitchCase="'imagewithcaption'" class="preview-block preview-block--image">
       <div class="image-block">
-        <img *ngIf="comp.imageWithCaption?.image" [src]="comp.imageWithCaption?.image" alt="" />
-        <p *ngIf="hasContent(comp.imageWithCaption?.text)" class="image-block__caption">
-          {{ comp.imageWithCaption?.text }}
+        <div class="image-block__media">
+          <ng-container *ngIf="comp.imageWithCaption?.image; else imageWithCaptionPlaceholder">
+            <img [src]="comp.imageWithCaption?.image" alt="Image with caption" />
+          </ng-container>
+          <ng-template #imageWithCaptionPlaceholder>
+            <div class="image-block__placeholder">Image</div>
+          </ng-template>
+        </div>
+        <p class="image-block__caption" [class.image-block__caption--placeholder]="!hasContent(comp.imageWithCaption?.text)">
+          {{ comp.imageWithCaption?.text || 'Text here' }}
         </p>
       </div>
     </section>
 
     <section *ngSwitchCase="'imagedesc'" class="preview-block preview-block--image-desc">
       <div class="image-desc">
-        <img *ngIf="comp.imageDesc?.image" [src]="comp.imageDesc?.image" alt="" />
-        <p *ngIf="hasContent(comp.imageDesc?.text)" class="image-desc__text">{{ comp.imageDesc?.text }}</p>
+        <div class="image-desc__media">
+          <ng-container *ngIf="comp.imageDesc?.image; else imageDescPlaceholder">
+            <img [src]="comp.imageDesc?.image" alt="Image with description" />
+          </ng-container>
+          <ng-template #imageDescPlaceholder>
+            <div class="image-desc__placeholder">Image</div>
+          </ng-template>
+        </div>
+        <div class="image-desc__content">
+          <p class="image-desc__text" [class.image-desc__text--placeholder]="!hasContent(comp.imageDesc?.text)">
+            {{ comp.imageDesc?.text || 'Text here' }}
+          </p>
+        </div>
       </div>
     </section>
 
@@ -153,49 +175,135 @@
     </section>
 
     <section *ngSwitchCase="'tablewithtopicanddesc'" class="preview-block preview-block--table">
-      <div class="table-with-topic-desc" *ngIf="hasContent(comp.tableWithTopicAndDesc?.title) || hasContent(comp.tableWithTopicAndDesc?.textDesc)">
-        <div class="table-with-topic-desc__topic" *ngIf="hasContent(comp.tableWithTopicAndDesc?.title)">{{ comp.tableWithTopicAndDesc?.title }}</div>
-        <div class="table-with-topic-desc__desc" *ngIf="hasContent(comp.tableWithTopicAndDesc?.textDesc)">{{ comp.tableWithTopicAndDesc?.textDesc }}</div>
+      <div class="table-with-topic-desc">
+        <p
+          class="table-with-topic-desc__topic"
+          [class.table-with-topic-desc__field--placeholder]="!hasContent(comp.tableWithTopicAndDesc?.title)"
+        >
+          {{ comp.tableWithTopicAndDesc?.title || 'Text here' }}
+        </p>
+        <p
+          class="table-with-topic-desc__desc"
+          [class.table-with-topic-desc__field--placeholder]="!hasContent(comp.tableWithTopicAndDesc?.textDesc)"
+        >
+          {{ comp.tableWithTopicAndDesc?.textDesc || 'Text here' }}
+        </p>
       </div>
     </section>
 
     <section *ngSwitchCase="'onetopicimagecaptionbutton'" class="preview-block preview-block--one-topic">
-      <div class="one-topic">
-        <img *ngIf="comp.oneTopicImageCaptionButton?.image" [src]="comp.oneTopicImageCaptionButton?.image" alt="" />
-        <div class="one-topic__content">
-          <h3 *ngIf="hasContent(comp.oneTopicImageCaptionButton?.title)">{{ comp.oneTopicImageCaptionButton?.title }}</h3>
-          <p *ngIf="hasContent(comp.oneTopicImageCaptionButton?.textDesc)">{{ comp.oneTopicImageCaptionButton?.textDesc }}</p>
-          <a *ngIf="hasContent(comp.oneTopicImageCaptionButton?.textOnButton) && comp.oneTopicImageCaptionButton?.isActive"
-             class="one-topic__button" [href]="comp.oneTopicImageCaptionButton?.url || '#'" target="_blank" rel="noopener">
-            {{ comp.oneTopicImageCaptionButton?.textOnButton }}
-          </a>
+      <div class="one-topic-card">
+        <h3
+          class="one-topic-card__title"
+          [class.one-topic-card__field--placeholder]="!hasContent(comp.oneTopicImageCaptionButton?.title)"
+        >
+          {{ comp.oneTopicImageCaptionButton?.title || 'Text here' }}
+        </h3>
+
+        <div class="one-topic-card__media">
+          <ng-container *ngIf="comp.oneTopicImageCaptionButton?.image; else oneTopicImagePlaceholder">
+            <img [src]="comp.oneTopicImageCaptionButton?.image" alt="One topic image" />
+          </ng-container>
+          <ng-template #oneTopicImagePlaceholder>
+            <div class="one-topic-card__placeholder">Image</div>
+          </ng-template>
         </div>
+
+        <p
+          class="one-topic-card__desc"
+          [class.one-topic-card__field--placeholder]="!hasContent(comp.oneTopicImageCaptionButton?.textDesc)"
+        >
+          {{ comp.oneTopicImageCaptionButton?.textDesc || 'Text here' }}
+        </p>
+
+        <a
+          class="one-topic-card__button"
+          [class.one-topic-card__button--placeholder]="!hasContent(comp.oneTopicImageCaptionButton?.textOnButton)"
+          [class.one-topic-card__button--disabled]="!comp.oneTopicImageCaptionButton?.isActive"
+          [attr.href]="comp.oneTopicImageCaptionButton?.isActive ? (comp.oneTopicImageCaptionButton?.url || '#') : '#'"
+          [attr.aria-disabled]="comp.oneTopicImageCaptionButton?.isActive ? null : 'true'"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ comp.oneTopicImageCaptionButton?.textOnButton || 'Text here' }}
+        </a>
       </div>
     </section>
 
     <section *ngSwitchCase="'twotopicimagecaptionbutton'" class="preview-block preview-block--two-topic">
       <div class="two-topic">
-        <div class="two-topic__col">
-          <img *ngIf="comp.twoTopicImageCaptionButton?.leftImage" [src]="comp.twoTopicImageCaptionButton?.leftImage" alt="" />
-          <div class="two-topic__body">
-            <h3 *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTitle)">{{ comp.twoTopicImageCaptionButton?.leftTitle }}</h3>
-            <p *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTextDesc)">{{ comp.twoTopicImageCaptionButton?.leftTextDesc }}</p>
-            <a *ngIf="hasContent(comp.twoTopicImageCaptionButton?.leftTextOnButton) && comp.twoTopicImageCaptionButton?.leftIsActive"
-               class="two-topic__button" [href]="comp.twoTopicImageCaptionButton?.leftUrl || '#'" target="_blank" rel="noopener">
-              {{ comp.twoTopicImageCaptionButton?.leftTextOnButton }}
-            </a>
+        <div class="two-topic-card">
+          <h3
+            class="two-topic-card__title"
+            [class.two-topic-card__field--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.leftTitle)"
+          >
+            {{ comp.twoTopicImageCaptionButton?.leftTitle || 'Text here' }}
+          </h3>
+
+          <div class="two-topic-card__media">
+            <ng-container *ngIf="comp.twoTopicImageCaptionButton?.leftImage; else twoTopicLeftImagePlaceholder">
+              <img [src]="comp.twoTopicImageCaptionButton?.leftImage" alt="Left topic image" />
+            </ng-container>
+            <ng-template #twoTopicLeftImagePlaceholder>
+              <div class="two-topic-card__placeholder">Image</div>
+            </ng-template>
           </div>
+
+          <p
+            class="two-topic-card__desc"
+            [class.two-topic-card__field--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.leftTextDesc)"
+          >
+            {{ comp.twoTopicImageCaptionButton?.leftTextDesc || 'Text here' }}
+          </p>
+
+          <a
+            class="two-topic-card__button"
+            [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.leftTextOnButton)"
+            [class.two-topic-card__button--disabled]="!comp.twoTopicImageCaptionButton?.leftIsActive"
+            [attr.href]="comp.twoTopicImageCaptionButton?.leftIsActive ? (comp.twoTopicImageCaptionButton?.leftUrl || '#') : '#'"
+            [attr.aria-disabled]="comp.twoTopicImageCaptionButton?.leftIsActive ? null : 'true'"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ comp.twoTopicImageCaptionButton?.leftTextOnButton || 'Text here' }}
+          </a>
         </div>
-        <div class="two-topic__col">
-          <img *ngIf="comp.twoTopicImageCaptionButton?.rightImage" [src]="comp.twoTopicImageCaptionButton?.rightImage" alt="" />
-          <div class="two-topic__body">
-            <h3 *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTitle)">{{ comp.twoTopicImageCaptionButton?.rightTitle }}</h3>
-            <p *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTextDesc)">{{ comp.twoTopicImageCaptionButton?.rightTextDesc }}</p>
-            <a *ngIf="hasContent(comp.twoTopicImageCaptionButton?.rightTextOnButton) && comp.twoTopicImageCaptionButton?.rightIsActive"
-               class="two-topic__button" [href]="comp.twoTopicImageCaptionButton?.rightUrl || '#'" target="_blank" rel="noopener">
-              {{ comp.twoTopicImageCaptionButton?.rightTextOnButton }}
-            </a>
+
+        <div class="two-topic-card">
+          <h3
+            class="two-topic-card__title"
+            [class.two-topic-card__field--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.rightTitle)"
+          >
+            {{ comp.twoTopicImageCaptionButton?.rightTitle || 'Text here' }}
+          </h3>
+
+          <div class="two-topic-card__media">
+            <ng-container *ngIf="comp.twoTopicImageCaptionButton?.rightImage; else twoTopicRightImagePlaceholder">
+              <img [src]="comp.twoTopicImageCaptionButton?.rightImage" alt="Right topic image" />
+            </ng-container>
+            <ng-template #twoTopicRightImagePlaceholder>
+              <div class="two-topic-card__placeholder">Image</div>
+            </ng-template>
           </div>
+
+          <p
+            class="two-topic-card__desc"
+            [class.two-topic-card__field--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.rightTextDesc)"
+          >
+            {{ comp.twoTopicImageCaptionButton?.rightTextDesc || 'Text here' }}
+          </p>
+
+          <a
+            class="two-topic-card__button"
+            [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.rightTextOnButton)"
+            [class.two-topic-card__button--disabled]="!comp.twoTopicImageCaptionButton?.rightIsActive"
+            [attr.href]="comp.twoTopicImageCaptionButton?.rightIsActive ? (comp.twoTopicImageCaptionButton?.rightUrl || '#') : '#'"
+            [attr.aria-disabled]="comp.twoTopicImageCaptionButton?.rightIsActive ? null : 'true'"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ comp.twoTopicImageCaptionButton?.rightTextOnButton || 'Text here' }}
+          </a>
         </div>
       </div>
     </section>
@@ -290,22 +398,29 @@
         </header>
 
         <div class="sale-card__pricing">
-          <div class="sale-card__promo" *ngIf="sale.hasPromo">
-            <span class="sale-card__promo-value">{{ sale.promoValue }} {{ bahtSymbol }}</span>
-          </div>
-          
+          <ng-container *ngIf="sale.hasPromoValue; else salePromoPlaceholder">
+            <div class="sale-card__promo">
+              <span class="sale-card__promo-value">{{ sale.promoValue }} {{ bahtSymbol }}</span>
+            </div>
+          </ng-container>
+          <ng-template #salePromoPlaceholder>
+            <div class="sale-card__promo sale-card__promo--placeholder" *ngIf="!sale.hasRegular">
+              <span class="sale-card__promo-value">{{ saleFallbackAmountValue }} {{ bahtSymbol }}</span>
+            </div>
+          </ng-template>
+
           <div
             class="sale-card__regular"
             [class.sale-card__regular--striked]="sale.hasPromo"
             [class.sale-card__regular--highlight]="!sale.hasPromo"
-            *ngIf="sale.hasRegular"
+            [class.sale-card__regular--placeholder]="!sale.hasRegular"
           >
-            {{ sale.regularValue }} {{ bahtSymbol }}
+            {{ sale.hasRegular ? sale.regularValue : saleFallbackAmountValue }} {{ bahtSymbol }}
           </div>
         </div>
 
         <div class="sale-card__countdown" *ngIf="sale.showCountdown">
-          <span class="sale-card__countdown-label"></span>
+          <span class="sale-card__countdown-label">{{ saleCountdownLabel }}</span>
           <div class="sale-card__timer">
             <ng-container *ngFor="let part of sale.countdownParts; let last = last">
               <span class="sale-card__timer-segment">{{ part }}</span>
@@ -314,42 +429,56 @@
           </div>
         </div>
 
-        <p class="sale-card__deadline" *ngIf="sale.deadlineText">{{ sale.deadlineText }}</p>
+        <p class="sale-card__deadline" [class.sale-card__deadline--placeholder]="sale.deadlinePlaceholder">
+          {{ sale.deadlineText }}
+        </p>
 
-        <a
-          *ngIf="hasContent(comp.sale?.textOnButton) && comp.sale?.isActive"
-          class="sale-card__cta"
-          [href]="comp.sale?.url || '#'"
-          target="_blank"
-          rel="noopener"
-        >
-          {{ comp.sale?.textOnButton }}
-        </a>
+        <ng-container *ngIf="sale.buttonActive; else saleButtonInactive">
+          <a
+            class="sale-card__cta"
+            [class.sale-card__cta--placeholder]="sale.buttonPlaceholder"
+            [attr.href]="sale.buttonPlaceholder ? null : comp.sale?.url || '#'"
+            [attr.target]="sale.buttonPlaceholder ? null : '_blank'"
+            [attr.rel]="sale.buttonPlaceholder ? null : 'noopener'"
+            [attr.aria-disabled]="sale.buttonPlaceholder ? 'true' : null"
+          >
+            {{ sale.buttonText }}
+          </a>
+        </ng-container>
+        <ng-template #saleButtonInactive>
+          <span class="sale-card__cta sale-card__cta--inactive">{{ sale.buttonText }}</span>
+        </ng-template>
 
         <p class="sale-card__footer">
           {{ hasContent(comp.sale?.textFooter) ? comp.sale?.textFooter : saleFallbackFooter }}
         </p>
       </div>
 
-      <div *ngIf="saleHasLogos(comp.sale)" class="sale-card__logos">
+      <div class="sale-card__logos" [class.sale-card__logos--placeholder]="!saleHasLogos(comp.sale)">
         <div class="sale-card__logo">
           <div class="sale-card__logo-image" [class.sale-card__logo-image--empty]="!hasContent(comp.sale?.leftImage)">
-            <ng-container *ngIf="hasContent(comp.sale?.leftImage)">
+            <ng-container *ngIf="hasContent(comp.sale?.leftImage); else saleLeftLogoPlaceholder">
               <img [src]="comp.sale?.leftImage" alt="Left sale graphic" />
             </ng-container>
+            <ng-template #saleLeftLogoPlaceholder>
+              <span class="sale-card__logo-placeholder">Image</span>
+            </ng-template>
           </div>
-          <p class="sale-card__logo-text">
+          <p class="sale-card__logo-text" [class.sale-card__logo-text--placeholder]="!hasContent(comp.sale?.leftText)">
             {{ hasContent(comp.sale?.leftText) ? comp.sale?.leftText : saleFallbackLogoText }}
           </p>
         </div>
 
         <div class="sale-card__logo">
           <div class="sale-card__logo-image" [class.sale-card__logo-image--empty]="!hasContent(comp.sale?.rightImage)">
-            <ng-container *ngIf="hasContent(comp.sale?.rightImage)">
+            <ng-container *ngIf="hasContent(comp.sale?.rightImage); else saleRightLogoPlaceholder">
               <img [src]="comp.sale?.rightImage" alt="Right sale graphic" />
             </ng-container>
+            <ng-template #saleRightLogoPlaceholder>
+              <span class="sale-card__logo-placeholder">Image</span>
+            </ng-template>
           </div>
-          <p class="sale-card__logo-text">
+          <p class="sale-card__logo-text" [class.sale-card__logo-text--placeholder]="!hasContent(comp.sale?.rightText)">
             {{ hasContent(comp.sale?.rightText) ? comp.sale?.rightText : saleFallbackLogoText }}
           </p>
         </div>
