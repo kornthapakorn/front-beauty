@@ -495,7 +495,7 @@ async createCategory() {
     if (!target) return;
     this.buttonConfigTarget = null;
     const field: TextField = ev.side === 'left' ? 'leftText' : 'rightText';
-    const current = ((target.props as any)[field] as string | undefined) || 'Text here';
+    const current = ((target.props as any)[field] as string | undefined) || '';
     this.configureTextConfigControl('display_text', current);
     this.textConfigTarget = { inst: target, field: field as TextField };
   }
@@ -944,13 +944,13 @@ async createCategory() {
       case 'banner':
         return {
           display_picture: { src: '' },
-          display_text: 'Text here',
-          display_button: { label: 'Text here', link: '', active: true }
+          display_text: '',
+          display_button: { label: '', link: '', active: true }
         };
       case 'textbox':
-        return { display_text: 'Text here' };
+        return { display_text: '' };
       case 'imagewithcaption':
-        return { display_picture: { src: '' }, display_text: 'Text here' };
+        return { display_picture: { src: '' }, display_text: '' };
       case 'button':
         return {
           display_button: { label: 'Button', link: '', active: true }
@@ -972,8 +972,8 @@ async createCategory() {
       case 'gridtwocolumn':
         return {
           gridTwoColumn: {
-            leftImage: '', leftText: 'Text here', leftUrl: '',
-            rightImage: '', rightText: 'Text here', rightUrl: ''
+            leftImage: '', leftText: '', leftUrl: '',
+            rightImage: '', rightText: '', rightUrl: ''
           }
         };
       case 'formtemplate':
@@ -990,7 +990,7 @@ async createCategory() {
           title: '',
           text: '',          endDate: '',
           textDesc: '',
-          textOnButton: 'Text here',
+          textOnButton: '',
           textFooter: '',
           isActive: true,
           url: '',
