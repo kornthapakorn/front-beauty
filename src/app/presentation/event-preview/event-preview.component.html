@@ -1,13 +1,4 @@
 <div class="event-preview">
-  <div class="event-preview__hero" *ngIf="bannerUrl || displayName || endDateText">
-    <div class="event-preview__banner" *ngIf="bannerUrl">
-      <img [src]="bannerUrl" alt="Event banner" />
-    </div>
-    <div class="event-preview__intro">
-      <h2 class="event-preview__title">{{ displayName }}</h2>
-      <p class="event-preview__date" *ngIf="endDateText">Available until {{ endDateText }}</p>
-    </div>
-  </div>
 
   <div class="event-preview__empty" *ngIf="!components?.length">
     <p>No front page components yet. Add blocks to preview them here.</p>

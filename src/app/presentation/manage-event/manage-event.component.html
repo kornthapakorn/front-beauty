@@ -21,7 +21,12 @@
 
   <!-- Table -->
   <div class="table-card">
-    <table>
+    <div class="loading-state" *ngIf="loadingEvents">
+      <div class="spinner"></div>
+      <p>Loading events...</p>
+    </div>
+
+    <table *ngIf="!loadingEvents">
       <thead>
         <tr>
           <th class="judson-bold">Event</th>
@@ -37,7 +42,7 @@
             </td>
             <td class="manage">
               <div class="inline-actions">
-                <button class="icon-btn" (click)="editEvent(e)" title="แก้ไข">
+                <button type="button" class="icon-btn" (click)="editEvent(e)" title="แก้ไข">
                   <img src="assets/icons/edit.png" alt="แก้ไข" />
                 </button>
                 <button class="icon-btn" (click)="viewForm(e)" title="ดูฟอร์ม">
@@ -71,6 +76,7 @@
         </ng-container>
       </tbody>
     </table>
+    <div class="events-error" *ngIf="eventsError && !loadingEvents">{{ eventsError }}</div>
   </div>
 </div>
 
@@ -88,7 +94,7 @@
   </button>
 
   <div class="contact-dock__main">
-    <div class="contact-dock__icons" [class.empty]="!(dock.links?.length)">
+  <div class="contact-dock__icons" [class.empty]="!(dock.links.length)">
       <ng-container *ngIf="dock.links?.length; else noContacts">
         <button type="button"
                 class="contact-icon"

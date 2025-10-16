@@ -1,0 +1,13 @@
+<ng-container *ngIf="eventId; else invalidIdTpl">
+  <app-create-event [editMode]="true" [editEventId]="eventId"></app-create-event>
+</ng-container>
+
+<ng-template #invalidIdTpl>
+  <div class="event-edit__invalid">
+    <div class="event-edit__message">
+      <h2>Cannot open event</h2>
+      <p>The supplied event id is invalid. Please return to the event list and try again.</p>
+      <a routerLink="/manage-events" class="event-edit__link">Back to Manage Events</a>
+    </div>
+  </div>
+</ng-template>

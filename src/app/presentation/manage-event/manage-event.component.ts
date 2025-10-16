@@ -41,6 +41,7 @@ export class ManageEventComponent implements OnInit {
   // ===== Events =====
   events: (EventDto & { isHidden?: boolean })[] = [];
   filteredEvents: (EventDto & { isHidden?: boolean })[] = [];
+  private static cachedEvents: (EventDto & { isHidden?: boolean })[] = [];
 
   // ===== Contact Dock (User view) =====
   dock: ContactUserView = { id: null, contactId: null, title: '', links: [] };
@@ -74,6 +75,8 @@ export class ManageEventComponent implements OnInit {
   openMenuId: number | null = null;
   menuPosition: 'down' | 'up' = 'down';
   deleteConfirm = { open: false, target: null as (EventDto & { isHidden?: boolean }) | null };
+  loadingEvents = false;
+  eventsError = '';
 
   readonly API_BASE = 'https://localhost:7091';
 
@@ -85,8 +88,16 @@ export class ManageEventComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.restoreCachedEvents();
     this.fetchEvents();
     void this.loadDock();
+  }
+
+  private restoreCachedEvents(): void {
+    if (ManageEventComponent.cachedEvents.length) {
+      this.events = [...ManageEventComponent.cachedEvents];
+      this.filteredEvents = this.events;
+    }
   }
 
   // ===== Helpers =====
@@ -366,12 +377,18 @@ export class ManageEventComponent implements OnInit {
   }
 
   fetchEvents(): void {
+    this.loadingEvents = true;
+    this.eventsError = '';
     this.eventService.getAll().subscribe({
       next: (data: EventDto[]) => {
+        this.loadingEvents = false;
         this.events = data.map((event: EventDto) => ({ ...event, isHidden: false }));
+        ManageEventComponent.cachedEvents = [...this.events];
         this.filteredEvents = this.events;
       },
       error: () => {
+        this.loadingEvents = false;
+        this.eventsError = 'Unable to load events. Please try again.';
         this.modalType = 'error';
         this.modalMessage = '????????????????????';
         this.modalOpen = true;
@@ -417,8 +434,8 @@ export class ManageEventComponent implements OnInit {
   }
 
   editEvent(eventDto: EventDto): void {
-    console.log('Edit', eventDto);
     this.openMenuId = null;
+    void this.router.navigate(['/events', eventDto.id, 'edit']);
   }
 
   viewForm(eventDto: EventDto): void {

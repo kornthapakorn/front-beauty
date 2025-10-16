@@ -8,6 +8,7 @@ import { CreateEventComponent } from './presentation/event-create/event-create.c
 import { ManageEventComponent } from './presentation/manage-event/manage-event.component';
 import { authGuard } from './core/guards/auth.guard';
 import { CreateFullEventComponent } from './presentation/create-full-event.component/create-full-event.component.component';
+import { EventEditComponent } from './presentation/event-edit/event-edit.component';
 
 
 export const routes: Routes = [
@@ -21,6 +22,7 @@ export const routes: Routes = [
   { path: 'event-create-full', component: CreateFullEventComponent},
 
  // { path: 'events', component: EventListComponent },
+  { path: 'events/:id/edit', component: EventEditComponent, canActivate: [authGuard] },
   { path: 'events/:id', component: EventDetailComponent, canActivate: [authGuard] },
   { path: 'manage-events', component: ManageEventComponent, canActivate: [authGuard] },
 

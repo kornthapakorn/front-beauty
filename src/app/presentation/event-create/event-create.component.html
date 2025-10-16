@@ -9,7 +9,10 @@
 <div class="page">
   <input #componentImageInput type="file" accept="image/*" hidden (change)="onComponentImagePicked($event)" />
   <form class="card form" [formGroup]="form" (ngSubmit)="save()">
-    <h2 class="form-title">Create Event</h2>
+    <h2 class="form-title">{{ editing ? 'Edit Event' : 'Create Event' }}</h2>
+
+    <div class="form-feedback" *ngIf="editing && loadingExistingEvent">Loading event...</div>
+    <div class="form-feedback error" *ngIf="editing && editLoadError">{{ editLoadError }}</div>
 
     <!-- End Date -->
     <div class="field" [class.invalid]="errors.endDate">
@@ -267,8 +270,8 @@
 
     <!-- Save -->
     <div class="actions">
-      <button type="submit" class="btn primary" [disabled]="submitting">
-        {{ submitting ? 'Saving???' : 'Save & Exit' }}
+      <button type="submit" class="btn primary" [disabled]="submitting || (editing && loadingExistingEvent)">
+        {{ submitting ? (editing ? 'Updating...' : 'Saving...') : (editing ? 'Update Event' : 'Save & Exit') }}
       </button>
     </div>
   </form>

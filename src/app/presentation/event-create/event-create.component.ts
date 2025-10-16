@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, ViewChild, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { EventService } from '../../domain/event.service';
 import { EventpService } from '../../domain/eventp.service';
-import { EventCreateDto } from '../../models/event.model';
+import { EventCreateDto, EventDto } from '../../models/event.model';
 import { EventComponentDto } from '../../models/event-component.model';
 import { ComponentDto } from '../../models/component.model';
 import { FormComponentTemplateDto } from '../../models/form-component';
@@ -97,6 +97,11 @@ type EventDraft = {
   selectedCategoryIds?: number[];
 };
 
+type LoadedEventDto = EventDto & {
+  categoryIds?: number[];
+  components?: EventComponentDto[];
+};
+
 type AboutImageField = 'hero' | 'left' | 'right';
 
 const IMAGE_ONLY_FILE_MESSAGE = 'Please upload only image file (jpg, jpeg, png)';
@@ -136,6 +141,8 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   bannerUrl: string | null = null;
   private bannerObjectUrl?: string;
   private bannerFile?: File;
+  private bannerOriginalSrc: string | null = null;
+  private sectionChildMap: Map<number, EventComponentDto[]> = new Map();
 
   // categories
   categories: Category[] = [];
@@ -222,6 +229,23 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   });
 
   private addToBack = false;
+  private readonly componentNameMap: Record<string, string> = {
+    section: 'Section',
+    banner: 'Banner',
+    textbox: 'Text Box',
+    imagewithcaption: 'Image With Caption',
+    gridtwocolumn: 'Grid Two Column',
+    imagedesc: 'Image With Description',
+    gridfourimage: 'Grid Four Image',
+    button: 'Button',
+    formtemplate: 'Form Template',
+    onetopicimagecaptionbutton: 'One Topic Image + Button',
+    twotopicimagecaptionbutton: 'Two Topic Image + Button',
+    sale: 'Sale',
+    tablewithtopicanddesc: 'Table With Topic & Desc',
+    aboutu: 'About Us'
+  };
+  private readonly assetBaseUrl = 'https://localhost:7091';
 
   // misc
   drawerOpen = false;
@@ -235,21 +259,50 @@ export class CreateEventComponent implements OnDestroy, OnInit {
   private draftSaveHandle: ReturnType<typeof setTimeout> | null = null;
   private skipNextPersist = false;
 
+  @Input() editMode = false;
+  @Input() editEventId: number | null = null;
+
+  editing = false;
+  editingEventId: number | null = null;
+  loadingExistingEvent = false;
+  editLoadError = '';
+  private draftEnabled = true;
+
   private uidSeq = 1;
   private nextUid() { return 'inst_' + (this.uidSeq++); }
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private eventp: EventpService,
-    private categoriesApi: CategoryService
+    private categoriesApi: CategoryService,
+    private eventService: EventService,
   ) {}
 
   ngOnInit(): void {
+    const paramId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!this.editMode && Number.isFinite(paramId) && paramId > 0) {
+      this.editMode = true;
+      this.editEventId = paramId;
+    }
+
+    if (this.editMode && this.editEventId && this.editEventId > 0) {
+      this.editing = true;
+      this.editingEventId = this.editEventId;
+      this.draftEnabled = false;
+    }
+
     this.formChangesSub = this.form.valueChanges.subscribe(() => {
       if (!this.restoringDraft) this.scheduleDraftSave();
     });
-    this.restoreDraft();
+
+    if (this.editing && this.editingEventId) {
+      void this.loadExistingEvent(this.editingEventId);
+    } else {
+      this.restoreDraft();
+    }
+
     void this.loadCategories();
   }
 
@@ -417,7 +470,53 @@ async createCategory() {
   }
 
   /** ---------- Fav ---------- */
-  toggleFav() { this.form.patchValue({ isFav: !this.form.value.isFav }); }
+  toggleFav(): void {
+    if (this.editing && this.loadingExistingEvent) return;
+    this.form.patchValue({ isFav: !this.form.value.isFav });
+  }
+
+  private async loadExistingEvent(id: number): Promise<void> {
+    this.loadingExistingEvent = true;
+    this.editLoadError = '';
+    try {
+      const detail = await firstValueFrom(this.eventService.getById(id)) as LoadedEventDto;
+      const endDate = detail.endDate ? this.toDateInputValue(detail.endDate) : '';
+
+      this.restoringDraft = true;
+      this.form.patchValue(
+        {
+          name: detail.name ?? '',
+          endDate,
+          isFav: !!detail.isFavorite,
+        },
+        { emitEvent: false },
+      );
+      this.form.markAsPristine();
+
+      const bannerSrc = typeof detail.fileImage === 'string' ? detail.fileImage : '';
+      if (this.bannerObjectUrl) {
+        URL.revokeObjectURL(this.bannerObjectUrl);
+        this.bannerObjectUrl = undefined;
+      }
+      this.bannerFile = undefined;
+      this.bannerOriginalSrc = bannerSrc || null;
+      this.bannerUrl = this.sanitizeImageForLoad(bannerSrc) || null;
+
+      if (Array.isArray(detail.categoryIds) && detail.categoryIds.length) {
+        this.pendingCategoryIds = detail.categoryIds;
+        this.applyPendingCategorySelection();
+      }
+
+      const componentList = this.extractComponentList(detail);
+      this.restoreComponentListsFromDto(componentList);
+    } catch (error) {
+      console.error('Failed to load event', error);
+      this.editLoadError = 'Unable to load event details.';
+    } finally {
+      this.restoringDraft = false;
+      this.loadingExistingEvent = false;
+    }
+  }
 
   /** ---------- Date ---------- */
   openDate(el: HTMLInputElement) {
@@ -1050,6 +1149,7 @@ async createCategory() {
     const f = input.files?.[0];
     if (!f) return;
     this.bannerFile = f;
+    this.bannerOriginalSrc = null;
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
     this.bannerObjectUrl = URL.createObjectURL(f);
     this.bannerUrl = this.bannerObjectUrl;
@@ -1066,6 +1166,7 @@ async createCategory() {
     const file = ev.dataTransfer?.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
     this.bannerFile = file;
+    this.bannerOriginalSrc = null;
     if (this.bannerObjectUrl) URL.revokeObjectURL(this.bannerObjectUrl);
     this.bannerObjectUrl = URL.createObjectURL(file);
     this.bannerUrl = this.bannerObjectUrl;
@@ -1074,6 +1175,7 @@ async createCategory() {
     this.bannerFile = undefined;
     if (this.bannerObjectUrl) { URL.revokeObjectURL(this.bannerObjectUrl); this.bannerObjectUrl = undefined; }
     this.bannerUrl = null;
+    this.bannerOriginalSrc = null;
   }
 
   /** ---------- Instance image helpers ---------- */
@@ -1498,6 +1600,492 @@ async createCategory() {
     this.frontPickerOpen = true;
   }
 
+  private extractComponentList(detail: LoadedEventDto | null | undefined): EventComponentDto[] | null {
+    if (!detail) return null;
+    if (Array.isArray(detail.components)) {
+      return detail.components;
+    }
+    const anyDetail = detail as unknown as Record<string, unknown>;
+    const front = anyDetail['frontComponents'];
+    const back = anyDetail['backComponents'];
+    const merged: EventComponentDto[] = [];
+    if (Array.isArray(front)) {
+      merged.push(...(front as EventComponentDto[]).map(comp => ({ ...comp, isOutPage: false })));
+    }
+    if (Array.isArray(back)) {
+      merged.push(...(back as EventComponentDto[]).map(comp => ({ ...comp, isOutPage: true })));
+    }
+    if (merged.length) {
+      return merged;
+    }
+    if (Array.isArray(anyDetail['eventComponents'])) {
+      return anyDetail['eventComponents'] as EventComponentDto[];
+    }
+    if (Array.isArray(anyDetail['componentDtos'])) {
+      return anyDetail['componentDtos'] as EventComponentDto[];
+    }
+    return null;
+  }
+
+  private restoreComponentListsFromDto(componentDtos: EventComponentDto[] | null | undefined): void {
+    const release = (list: CompInstance[]) => {
+      if (!Array.isArray(list)) return;
+      list.forEach(inst => this.revokeAllObjectUrls(inst));
+    };
+
+    release(this.frontComponents);
+    release(this.backComponents);
+    this.sectionChildMap.clear();
+
+    const nextFront: CompInstance[] = [];
+    const nextBack: CompInstance[] = [];
+
+    if (Array.isArray(componentDtos) && componentDtos.length) {
+      const { roots, childMap } = this.partitionSectionHierarchy(componentDtos);
+      this.sectionChildMap = childMap;
+      const frontDtos = roots
+        .filter(dto => !dto?.isOutPage)
+        .sort((a, b) => this.sortComponentOrder(a, b));
+      const backDtos = roots
+        .filter(dto => !!dto?.isOutPage)
+        .sort((a, b) => this.sortComponentOrder(a, b));
+
+      for (const dto of frontDtos) {
+        const inst = this.createInstFromComponentDto(dto);
+        if (inst) nextFront.push(inst);
+      }
+      for (const dto of backDtos) {
+        const inst = this.createInstFromComponentDto(dto);
+        if (inst) nextBack.push(inst);
+      }
+    }
+
+    this.frontComponents = nextFront;
+    this.backComponents = nextBack;
+    this.previewComponents = this.buildPreviewTree(this.frontComponents);
+  }
+
+  private partitionSectionHierarchy(componentDtos: EventComponentDto[]): { roots: EventComponentDto[]; childMap: Map<number, EventComponentDto[]> } {
+    const roots: EventComponentDto[] = [];
+    const childMap = new Map<number, EventComponentDto[]>();
+    for (const dto of componentDtos) {
+      const parentId = this.extractSectionParentId(dto);
+      if (parentId > 0) {
+        const bucket = childMap.get(parentId);
+        if (bucket) {
+          bucket.push(dto);
+        } else {
+          childMap.set(parentId, [dto]);
+        }
+      } else {
+        roots.push(dto);
+      }
+    }
+    return { roots, childMap };
+  }
+
+  private extractSectionParentId(dto: EventComponentDto): number {
+    const anyDto = dto as unknown as Record<string, unknown>;
+    const keys = ['sectionId', 'parentSectionId', 'sectionComponentId', 'parentComponentId', 'ownerSectionId', 'ownerComponentId', 'parentId'];
+    for (const key of keys) {
+      const raw = anyDto?.[key];
+      const parsed = this.toPositiveNumber(raw);
+      if (parsed > 0) {
+        return parsed;
+      }
+    }
+    return 0;
+  }
+
+  private createInstFromComponentDto(dto: EventComponentDto | null | undefined): CompInstance | null {
+    if (!dto) return null;
+    const anyDto = dto as unknown as Record<string, unknown>;
+    const typeSource =
+      dto.componentType ??
+      (typeof anyDto['componentTypeName'] === 'string' ? anyDto['componentTypeName'] : undefined) ??
+      (typeof anyDto['componentTag'] === 'string' ? anyDto['componentTag'] : undefined) ??
+      (anyDto['component'] && typeof (anyDto['component'] as any).tagName === 'string'
+        ? (anyDto['component'] as any).tagName
+        : undefined);
+    const type = this.normalizeType(typeSource ?? '');
+    if (!type) return null;
+
+    const comp: ComponentDto = {
+      componentId: typeof dto.id === 'number' ? dto.id : 0,
+      name: this.resolveComponentName(type),
+      tagName: type
+    };
+
+    const inst: CompInstance = {
+      uid: this.nextUid(),
+      comp,
+      props: this.defaultPropsFor(comp)
+    };
+
+    this.populatePropsFromDto(inst, dto, type);
+    return inst;
+  }
+
+  private resolveComponentName(type: string): string {
+    if (!type) return 'Component';
+    return this.componentNameMap[type] ?? type.replace(/[-_]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  private populatePropsFromDto(inst: CompInstance, dto: EventComponentDto, type: string): void {
+    const props = inst.props ?? (inst.props = {} as ComponentProps);
+    const toImage = (value: unknown) => this.sanitizeImageForLoad(value);
+
+    switch (type) {
+      case 'banner': {
+        const banner = dto.banner;
+        const image = toImage(banner?.image);
+        props.display_picture = { src: image };
+        props.display_text = this.coerceString(banner?.textDesc);
+        props.display_button = {
+          label: this.coerceString(banner?.textOnButton),
+          link: this.coerceString(banner?.urlButton),
+          active: banner?.isActive ?? true
+        };
+        break;
+      }
+      case 'textbox': {
+        props.display_text = this.coerceString(dto.textBox?.text);
+        break;
+      }
+      case 'imagewithcaption': {
+        const block = dto.imageWithCaption;
+        const image = toImage(block?.image);
+        const text = this.coerceString(block?.text);
+        props.display_picture = { src: image };
+        props.display_text = text;
+        props.textDesc = text;
+        break;
+      }
+      case 'imagedesc': {
+        const block = dto.imageDesc;
+        const image = toImage(block?.image);
+        const text = this.coerceString(block?.text);
+        props.display_picture = { src: image };
+        props.display_text = text;
+        props.textDesc = text;
+        break;
+      }
+      case 'gridtwocolumn': {
+        const grid = dto.gridTwoColumn;
+        const leftImage = toImage(grid?.leftImage);
+        const rightImage = toImage(grid?.rightImage);
+        const leftText = this.coerceString(grid?.leftText);
+        const rightText = this.coerceString(grid?.rightText);
+        const leftUrl = this.coerceString(grid?.leftUrl);
+        const rightUrl = this.coerceString(grid?.rightUrl);
+        props.gridTwoColumn = {
+          leftImage,
+          leftText,
+          leftUrl,
+          rightImage,
+          rightText,
+          rightUrl
+        };
+        props.leftImage = leftImage;
+        props.leftText = leftText;
+        props.leftUrl = leftUrl;
+        props.rightImage = rightImage;
+        props.rightText = rightText;
+        props.rightUrl = rightUrl;
+        break;
+      }
+      case 'gridfourimage': {
+        const grid = dto.gridFourImage;
+        props.image1 = toImage(grid?.image1);
+        props.image2 = toImage(grid?.image2);
+        props.image3 = toImage(grid?.image3);
+        props.image4 = toImage(grid?.image4);
+        break;
+      }
+      case 'button': {
+        const button = dto.button;
+        props.display_button = {
+          label: this.coerceString(button?.textOnButton),
+          link: this.coerceString(button?.url),
+          active: button?.isActive ?? true
+        };
+        break;
+      }
+      case 'formtemplate': {
+        const template = dto.formTemplate;
+        props.topic = this.coerceString(template?.topic);
+        props.textOnButton = this.coerceString(template?.textOnButton);
+        props.popupText = this.coerceString(template?.popupText);
+        props.popupImage = toImage(template?.popupImage);
+        props.formComponents = this.cloneFormComponentsFromDto(template?.components);
+        break;
+      }
+      case 'onetopicimagecaptionbutton': {
+        const block = dto.oneTopicImageCaptionButton;
+        const image = toImage(block?.image);
+        props.title = this.coerceString(block?.title);
+        const desc = this.coerceString(block?.textDesc);
+        props.textDesc = desc;
+        props.display_text = desc;
+        props.textOnButton = this.coerceString(block?.textOnButton);
+        props.isActive = block?.isActive ?? true;
+        props.url = this.coerceString(block?.url);
+        props.display_button = {
+          label: props.textOnButton || '',
+          link: props.url || '',
+          active: props.isActive
+        };
+        props.display_picture = { src: image };
+        (props as any).image = image;
+        break;
+      }
+      case 'twotopicimagecaptionbutton': {
+        const block = dto.twoTopicImageCaptionButton;
+        const leftImage = toImage(block?.leftImage);
+        const rightImage = toImage(block?.rightImage);
+        props.leftTitle = this.coerceString(block?.leftTitle);
+        props.leftTextDesc = this.coerceString(block?.leftTextDesc);
+        props.leftTextOnButton = this.coerceString(block?.leftTextOnButton);
+        props.leftIsActive = block?.leftIsActive ?? true;
+        props.rightTitle = this.coerceString(block?.rightTitle);
+        props.rightTextDesc = this.coerceString(block?.rightTextDesc);
+        props.rightTextOnButton = this.coerceString(block?.rightTextOnButton);
+        props.rightIsActive = block?.rightIsActive ?? true;
+        const leftUrl = this.coerceString(block?.leftUrl);
+        const rightUrl = this.coerceString(block?.rightUrl);
+        props.gridTwoColumn = {
+          leftImage,
+          leftText: props.leftTextDesc || '',
+          leftUrl,
+          rightImage,
+          rightText: props.rightTextDesc || '',
+          rightUrl
+        };
+        props.leftImage = leftImage;
+        props.leftText = props.leftTextDesc || '';
+        props.leftUrl = leftUrl;
+        props.rightImage = rightImage;
+        props.rightText = props.rightTextDesc || '';
+        props.rightUrl = rightUrl;
+        break;
+      }
+      case 'tablewithtopicanddesc': {
+        const block = dto.tableWithTopicAndDesc;
+        props.title = this.coerceString(block?.title);
+        props.textDesc = this.coerceString(block?.textDesc);
+        break;
+      }
+      case 'aboutu': {
+        const about = dto.aboutU;
+        const hero = toImage(about?.imageTopic);
+        const leftImage = toImage(about?.leftImage);
+        const rightImage = toImage(about?.rightImage);
+        const topic = this.coerceString(about?.textTopic);
+        const leftText = this.coerceString(about?.leftText);
+        const rightText = this.coerceString(about?.rightText);
+        const leftUrl = this.coerceString(about?.leftUrl);
+        const rightUrl = this.coerceString(about?.rightUrl);
+        props.imageTopic = hero;
+        props.display_picture = { src: hero };
+        props.textTopic = topic;
+        props.title = topic;
+        props.textDesc = this.coerceString(about?.textDesc);
+        props.gridTwoColumn = {
+          leftImage,
+          leftText,
+          leftUrl,
+          rightImage,
+          rightText,
+          rightUrl
+        };
+        props.leftImage = leftImage;
+        props.leftText = leftText;
+        props.leftUrl = leftUrl;
+        props.rightImage = rightImage;
+        props.rightText = rightText;
+        props.rightUrl = rightUrl;
+        break;
+      }
+      case 'sale': {
+        const sale = dto.sale;
+        props.title = this.coerceString(sale?.title);
+        props.text = this.coerceString(sale?.text);
+        const promo = this.parseSaleNumber(sale?.promoPrice);
+        const price = this.parseSaleNumber(sale?.price);
+        props.promoPrice = promo ?? undefined;
+        props.price = price ?? undefined;
+        props.endDate = this.coerceString(sale?.endDate);
+        props.textDesc = this.coerceString(sale?.textDesc);
+        props.textOnButton = this.coerceString(sale?.textOnButton);
+        props.textFooter = this.coerceString(sale?.textFooter);
+        props.isActive = sale?.isActive ?? true;
+        props.url = this.coerceString(sale?.url);
+        const leftImage = toImage(sale?.leftImage);
+        const rightImage = toImage(sale?.rightImage);
+        const leftText = this.coerceString(sale?.leftText);
+        const rightText = this.coerceString(sale?.rightText);
+        props.gridTwoColumn = {
+          leftImage,
+          leftText,
+          leftUrl: '',
+          rightImage,
+          rightText,
+          rightUrl: ''
+        };
+        props.leftImage = leftImage;
+        props.leftText = leftText;
+        props.rightImage = rightImage;
+        props.rightText = rightText;
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (type === 'section') {
+      this.applySectionChildren(inst, dto);
+    }
+  }
+
+  private applySectionChildren(inst: CompInstance, dto: EventComponentDto): void {
+    const childrenDtos = this.resolveSectionChildren(dto);
+    if (!childrenDtos.length) {
+      inst.props.children = [];
+      return;
+    }
+    const children: CompInstance[] = [];
+    const sorted = [...childrenDtos].sort((a, b) => this.sortComponentOrder(a, b));
+    for (const childDto of sorted) {
+      const child = this.createInstFromComponentDto(childDto);
+      if (child) {
+        children.push(child);
+      }
+    }
+    inst.props.children = children;
+  }
+
+  private resolveSectionChildren(dto: EventComponentDto): EventComponentDto[] {
+    const combined: EventComponentDto[] = [];
+    if (dto.section && Array.isArray(dto.section.components)) {
+      combined.push(...dto.section.components);
+    }
+    const sectionId = this.toPositiveNumber(dto?.id);
+    if (sectionId > 0) {
+      const mapped = this.sectionChildMap.get(sectionId);
+      if (Array.isArray(mapped) && mapped.length) {
+        combined.push(...mapped);
+        this.sectionChildMap.delete(sectionId);
+      }
+    }
+    const anyDto = dto as unknown as Record<string, unknown>;
+    const altKeys = ['components', 'sectionComponents', 'children'];
+    for (const key of altKeys) {
+      const raw = anyDto?.[key];
+      if (Array.isArray(raw)) {
+        combined.push(...(raw as EventComponentDto[]));
+      }
+    }
+    if (!combined.length) {
+      return [];
+    }
+    const seen = new Set<number>();
+    const result: EventComponentDto[] = [];
+    for (const child of combined) {
+      if (!child) continue;
+      const childId = this.toPositiveNumber(child.id);
+      if (childId > 0) {
+        if (seen.has(childId)) continue;
+        seen.add(childId);
+      }
+      result.push(child);
+    }
+    return result;
+  }
+
+  private cloneFormComponentsFromDto(list: FormComponentTemplateDto[] | null | undefined): FormComponentTemplateDto[] {
+    if (!Array.isArray(list) || !list.length) {
+      return [];
+    }
+    const result: FormComponentTemplateDto[] = [];
+    for (const comp of list) {
+      const cloned = this.cloneSingleFormComponent(comp);
+      if (cloned) {
+        result.push(cloned);
+      }
+    }
+    return result;
+  }
+
+  private cloneSingleFormComponent(comp: FormComponentTemplateDto | null | undefined): FormComponentTemplateDto | null {
+    if (!comp) return null;
+    const clone: FormComponentTemplateDto = {
+      ...comp,
+      id: typeof comp.id === 'number' ? comp.id : 0,
+      formTemplateId: typeof comp.formTemplateId === 'number' ? comp.formTemplateId : 0,
+      isDelete: !!comp.isDelete,
+      componentType: comp.componentType
+    };
+
+    if (comp.singleSelection) {
+      clone.singleSelection = {
+        value: this.coerceString(comp.singleSelection.value),
+        options: Array.isArray(comp.singleSelection.options)
+          ? comp.singleSelection.options.map(opt => this.coerceString(opt))
+          : []
+      };
+    }
+    if (comp.textField) {
+      clone.textField = { text: this.coerceString(comp.textField.text) };
+    }
+    if (comp.date) {
+      clone.date = { text: this.coerceString(comp.date.text) };
+    }
+    if (comp.birthDate) {
+      clone.birthDate = { label: this.coerceString(comp.birthDate.label) };
+    }
+    if (comp.imageUpload) {
+      clone.imageUpload = { text: this.coerceString(comp.imageUpload.text) };
+    }
+    if (comp.imageUploadWithImageContent) {
+      clone.imageUploadWithImageContent = {
+        textDesc: this.coerceString(comp.imageUploadWithImageContent.textDesc),
+        image: this.sanitizeImageForLoad(comp.imageUploadWithImageContent.image)
+      };
+    }
+    if (comp.formButton) {
+      clone.formButton = {
+        textOnButton: this.coerceString(comp.formButton.textOnButton),
+        isActive: comp.formButton.isActive ?? true,
+        url: this.coerceString(comp.formButton.url)
+      };
+    }
+
+    return clone;
+  }
+
+  private sortComponentOrder(a: EventComponentDto | null | undefined, b: EventComponentDto | null | undefined): number {
+    const orderA = (a && typeof a.sortOrder === 'number') ? a.sortOrder : 0;
+    const orderB = (b && typeof b.sortOrder === 'number') ? b.sortOrder : 0;
+    return orderA - orderB;
+  }
+
+  private sanitizeImageForLoad(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith('blob:')) {
+      return '';
+    }
+    if (/^https?:\/\//i.test(trimmed) || /^(data|blob):/i.test(trimmed)) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('/')) {
+      return `${this.assetBaseUrl}${trimmed}`;
+    }
+    return `${this.assetBaseUrl}/${trimmed}`;
+  }
+
   /** ---------- build blocks & serialize ---------- */
   private coerceString(value: unknown): string {
     return typeof value === 'string' ? value.trim() : '';
@@ -1762,22 +2350,38 @@ async createCategory() {
       const record = value as Record<string, unknown>;
       for (const key of Object.keys(record)) {
         const current = record[key];
-        if (typeof current === 'string' && current.startsWith('blob:')) {
-          record[key] = '';
-        } else {
-          this.stripBlobUrlsFromDto(current);
+        if (typeof current === 'string') {
+          if (current.startsWith('blob:')) {
+            record[key] = '';
+            continue;
+          }
+          if (this.assetBaseUrl && current.startsWith(this.assetBaseUrl)) {
+            record[key] = this.sanitizeImageValue(current);
+            continue;
+          }
         }
+        this.stripBlobUrlsFromDto(current);
       }
     }
   }
 
   private sanitizeImageValue(value: string | null | undefined): string {
     if (!value) return '';
-    return value.startsWith('blob:') ? '' : value;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith('blob:')) {
+      return '';
+    }
+    if (this.assetBaseUrl && trimmed.startsWith(this.assetBaseUrl)) {
+      const stripped = trimmed.slice(this.assetBaseUrl.length);
+      return stripped.startsWith('/') ? stripped : `/${stripped}`;
+    }
+    return trimmed;
   }
 
   /** ---------- SAVE ---------- */
   async save() {
+    if (this.editing && this.loadingExistingEvent) return;
+
     this.submitAttempted = true;
     this.errors = {};
     const name = this.form.value.name?.trim() || '';
@@ -1822,7 +2426,7 @@ async createCategory() {
     const dtoJson: EventCreateDto = {
       name,
       isFavorite: isFav,
-      fileImage: this.bannerFile ? '' : this.sanitizeImageValue(this.bannerUrl),
+      fileImage: this.bannerFile ? '' : this.sanitizeImageValue(this.bannerOriginalSrc ?? this.bannerUrl),
       endDate: this.toLocalEndDateString(endDate),
       categoryIds: this.categories.filter(c => c.selected).map(c => c.id),
       components
@@ -1837,16 +2441,24 @@ async createCategory() {
       formData.append(key, file, file.name);
     }
 
-    this.eventp.createFull(formData).subscribe({
+    const request$ = this.editing && this.editingEventId
+      ? this.eventp.updateFull(this.editingEventId, formData)
+      : this.eventp.createFull(formData);
+
+    request$.subscribe({
       next: () => {
         this.submitting = false;
-        this.clearDraft();
+        if (!this.editing) {
+          this.clearDraft();
+        }
         this.submitAttempted = false;
-        this.showToast('Created event successfully');
+        this.showToast(this.editing ? 'Updated event successfully' : 'Created event successfully');
       },
       error: (err: unknown) => {
         this.submitting = false;
-        const message = (err as { error?: string })?.error ?? 'Create failed';
+        const fallback = this.editing ? 'Update failed' : 'Create failed';
+        const anyErr = err as { error?: string; message?: string };
+        const message = anyErr?.error || anyErr?.message || fallback;
         alert(message);
       }
     });
@@ -1908,6 +2520,17 @@ async createCategory() {
     return null;
   }
 
+  private toPositiveNumber(value: unknown): number {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+    return 0;
+  }
+
   private saleDateHasIssue(value: unknown): boolean {
     const str = this.coerceString(value);
     if (!str) return true;
@@ -1953,6 +2576,11 @@ async createCategory() {
     });
   }
   private toYMD(d: Date) { const pad = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  private toDateInputValue(value: string): string {
+    if (!value) return '';
+    const tIndex = value.indexOf('T');
+    return tIndex >= 0 ? value.slice(0, tIndex) : value;
+  }
   // Build local end date string with timezone offset, e.g., 2025-09-20T23:59:59+07:00
   private toLocalEndDateString(ymd: string): string {
     // ymd in format YYYY-MM-DD from input[type=date]
@@ -1971,7 +2599,7 @@ async createCategory() {
 
 
   private scheduleDraftSave(): void {
-    if (this.restoringDraft) return;
+    if (!this.draftEnabled || this.restoringDraft) return;
     if (this.draftSaveHandle) {
       clearTimeout(this.draftSaveHandle);
     }
@@ -1988,7 +2616,7 @@ async createCategory() {
   }
 
   private persistDraft(): void {
-    if (this.restoringDraft) return;
+    if (!this.draftEnabled || this.restoringDraft) return;
     if (this.skipNextPersist) {
       this.skipNextPersist = false;
       return;
@@ -2010,6 +2638,7 @@ async createCategory() {
   }
 
   private restoreDraft(): void {
+    if (!this.draftEnabled) return;
     const stored = localStorage.getItem(this.draftStorageKey);
     if (!stored) return;
     try {
@@ -2042,12 +2671,14 @@ async createCategory() {
   }
 
   private clearDraft(): void {
+    if (!this.draftEnabled) return;
     localStorage.removeItem(this.draftStorageKey);
     this.pendingCategoryIds = [];
     this.skipNextPersist = true;
   }
 
   private flushDraftSave(): void {
+    if (!this.draftEnabled) return;
     if (this.draftSaveHandle) {
       clearTimeout(this.draftSaveHandle);
       this.draftSaveHandle = null;
