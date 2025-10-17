@@ -29,20 +29,21 @@
             {{ comp.banner?.textDesc || 'Text here' }}
           </p>
 
-          <ng-container *ngIf="hasContent(comp.banner?.textOnButton); else bannerCtaPlaceholder">
-            <a
-              class="preview-banner__cta"
-              [class.preview-banner__cta--inactive]="comp.banner && !comp.banner.isActive"
-              [href]="comp.banner?.urlButton || '#'"
-              target="_blank"
-              rel="noopener"
-            >
-              {{ comp.banner?.textOnButton }}
-            </a>
+          <ng-container *ngIf="comp.banner?.isActive !== false">
+            <ng-container *ngIf="hasContent(comp.banner?.textOnButton); else bannerCtaPlaceholder">
+              <a
+                class="preview-banner__cta"
+                [href]="comp.banner?.urlButton || '#'"
+                target="_blank"
+                rel="noopener"
+              >
+                {{ comp.banner?.textOnButton }}
+              </a>
+            </ng-container>
+            <ng-template #bannerCtaPlaceholder>
+              <span class="preview-banner__cta preview-banner__cta--placeholder">Text here</span>
+            </ng-template>
           </ng-container>
-          <ng-template #bannerCtaPlaceholder>
-            <span class="preview-banner__cta preview-banner__cta--placeholder">Text here</span>
-          </ng-template>
         </div>
       </div>
     </section>
@@ -207,17 +208,17 @@
           {{ comp.oneTopicImageCaptionButton?.textDesc || 'Text here' }}
         </p>
 
-        <a
-          class="one-topic-card__button"
-          [class.one-topic-card__button--placeholder]="!hasContent(comp.oneTopicImageCaptionButton?.textOnButton)"
-          [class.one-topic-card__button--disabled]="!comp.oneTopicImageCaptionButton?.isActive"
-          [attr.href]="comp.oneTopicImageCaptionButton?.isActive ? (comp.oneTopicImageCaptionButton?.url || '#') : '#'"
-          [attr.aria-disabled]="comp.oneTopicImageCaptionButton?.isActive ? null : 'true'"
-          target="_blank"
-          rel="noopener"
-        >
-          {{ comp.oneTopicImageCaptionButton?.textOnButton || 'Text here' }}
-        </a>
+        <ng-container *ngIf="comp.oneTopicImageCaptionButton?.isActive !== false">
+          <a
+            class="one-topic-card__button"
+            [class.one-topic-card__button--placeholder]="!hasContent(comp.oneTopicImageCaptionButton?.textOnButton)"
+            [attr.href]="comp.oneTopicImageCaptionButton?.url || '#'"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ comp.oneTopicImageCaptionButton?.textOnButton || 'Text here' }}
+          </a>
+        </ng-container>
       </div>
     </section>
 
@@ -247,17 +248,17 @@
             {{ comp.twoTopicImageCaptionButton?.leftTextDesc || 'Text here' }}
           </p>
 
-          <a
-            class="two-topic-card__button"
-            [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.leftTextOnButton)"
-            [class.two-topic-card__button--disabled]="!comp.twoTopicImageCaptionButton?.leftIsActive"
-            [attr.href]="comp.twoTopicImageCaptionButton?.leftIsActive ? (comp.twoTopicImageCaptionButton?.leftUrl || '#') : '#'"
-            [attr.aria-disabled]="comp.twoTopicImageCaptionButton?.leftIsActive ? null : 'true'"
-            target="_blank"
-            rel="noopener"
-          >
-            {{ comp.twoTopicImageCaptionButton?.leftTextOnButton || 'Text here' }}
-          </a>
+          <ng-container *ngIf="comp.twoTopicImageCaptionButton?.leftIsActive !== false">
+            <a
+              class="two-topic-card__button"
+              [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.leftTextOnButton)"
+              [attr.href]="comp.twoTopicImageCaptionButton?.leftUrl || '#'"
+              target="_blank"
+              rel="noopener"
+            >
+              {{ comp.twoTopicImageCaptionButton?.leftTextOnButton || 'Text here' }}
+            </a>
+          </ng-container>
         </div>
 
         <div class="two-topic-card">
@@ -284,17 +285,17 @@
             {{ comp.twoTopicImageCaptionButton?.rightTextDesc || 'Text here' }}
           </p>
 
-          <a
-            class="two-topic-card__button"
-            [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.rightTextOnButton)"
-            [class.two-topic-card__button--disabled]="!comp.twoTopicImageCaptionButton?.rightIsActive"
-            [attr.href]="comp.twoTopicImageCaptionButton?.rightIsActive ? (comp.twoTopicImageCaptionButton?.rightUrl || '#') : '#'"
-            [attr.aria-disabled]="comp.twoTopicImageCaptionButton?.rightIsActive ? null : 'true'"
-            target="_blank"
-            rel="noopener"
-          >
-            {{ comp.twoTopicImageCaptionButton?.rightTextOnButton || 'Text here' }}
-          </a>
+          <ng-container *ngIf="comp.twoTopicImageCaptionButton?.rightIsActive !== false">
+            <a
+              class="two-topic-card__button"
+              [class.two-topic-card__button--placeholder]="!hasContent(comp.twoTopicImageCaptionButton?.rightTextOnButton)"
+              [attr.href]="comp.twoTopicImageCaptionButton?.rightUrl || '#'"
+              target="_blank"
+              rel="noopener"
+            >
+              {{ comp.twoTopicImageCaptionButton?.rightTextOnButton || 'Text here' }}
+            </a>
+          </ng-container>
         </div>
       </div>
     </section>
@@ -424,7 +425,7 @@
           {{ sale.deadlineText }}
         </p>
 
-        <ng-container *ngIf="sale.buttonActive; else saleButtonInactive">
+        <ng-container *ngIf="sale.buttonActive">
           <a
             class="sale-card__cta"
             [class.sale-card__cta--placeholder]="sale.buttonPlaceholder"
@@ -436,9 +437,6 @@
             {{ sale.buttonText }}
           </a>
         </ng-container>
-        <ng-template #saleButtonInactive>
-          <span class="sale-card__cta sale-card__cta--inactive">{{ sale.buttonText }}</span>
-        </ng-template>
 
         <p class="sale-card__footer">
           {{ hasContent(comp.sale?.textFooter) ? comp.sale?.textFooter : saleFallbackFooter }}
@@ -479,7 +477,7 @@
 </section>
 
     <section *ngSwitchCase="'button'" class="preview-block preview-block--button">
-      <a *ngIf="hasContent(comp.button?.textOnButton) && comp.button?.isActive"
+      <a *ngIf="hasContent(comp.button?.textOnButton) && comp.button?.isActive !== false"
          class="preview-button" [href]="comp.button?.url || '#'" target="_blank" rel="noopener">
         {{ comp.button?.textOnButton }}
       </a>
@@ -543,8 +541,6 @@
     </section>
   </ng-container>
 </ng-template>
-
-
 
 
 

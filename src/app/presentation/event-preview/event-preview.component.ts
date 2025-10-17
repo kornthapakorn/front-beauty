@@ -86,7 +86,7 @@ export class EventPreviewComponent implements OnInit, OnDestroy {
     const countdownActive = diffMs !== null && diffMs > 0;
     const promoEligible = promoNumber !== null && regularNumber !== null && promoNumber > 0 && regularNumber > 0 && promoNumber < regularNumber;
     const hasPromoValue = promoNumber !== null;
-    const hasPromo = promoEligible && countdownActive;
+    const hasPromo = promoEligible;
     const hasRegular = regularNumber !== null;
     const expired = promoEligible && !!endDate && !countdownActive;
     const rawDeadline = this.buildDeadlineText(sale);
@@ -100,7 +100,7 @@ export class EventPreviewComponent implements OnInit, OnDestroy {
       hasRegular,
       promoValue: hasPromoValue ? this.formatNumber(Math.max(0, promoNumber ?? 0)) : null,
       regularValue: hasRegular ? this.formatNumber(Math.max(0, regularNumber ?? 0)) : null,
-      showCountdown: hasPromo,
+      showCountdown: promoEligible && countdownActive,
       countdownParts: hasPromo && diffMs !== null ? this.buildCountdownParts(diffMs) : [],
       deadlineText: hasDeadline ? rawDeadline : this.saleFallbackLogoText,
       deadlinePlaceholder: !hasDeadline,
